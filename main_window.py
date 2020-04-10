@@ -6,6 +6,7 @@
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 from PyQt5 import QtGui
+
 # Класс с определением собственных диалоговых окон
 from dialog_windows import CloseDialog, CreateDialog, CreateDialog_ext
 
@@ -21,31 +22,60 @@ from settings import SettingsWidget
 
 import os
 
-# Класс, описыающий стартовое окно с hint'ами
+_VERSION = "0.6"
+
+# Класс, описывающий стартовое окно с hint'ами
 class StartPage(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
-        # label_greet = QtWidgets.QLabel("Добро пожаловать на главную страницу нумеролога")
-        # label_greet.setAlignment(QtCore.Qt.AlignHCenter)
-        # label_hint = QtWidgets.QLabel("Подсказки и мануал по эксплуатации в кратком изложении")
-        # label_hint.setAlignment(QtCore.Qt.AlignHCenter)
+        
+        self.vbox = QtWidgets.QVBoxLayout(self)
 
-        # vbox = QtWidgets.QVBoxLayout(self)
-        # vbox.addWidget(label_greet)
-        # vbox.addWidget(label_hint)
+        self.label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignCenter)
+
+        self.hbox_1 = QtWidgets.QHBoxLayout(self)
+        self.groupBox_1 = QtWidgets.QGroupBox()
+        self.image_1 = QtWidgets.QLabel(self.groupBox_1)
+        self.groupBox_2 = QtWidgets.QGroupBox()
+        self.image_2 = QtWidgets.QLabel(self.groupBox_2)
+
+        self.hbox_2 = QtWidgets.QHBoxLayout(self)
+        self.groupBox_3 = QtWidgets.QGroupBox()
+        self.image_3 = QtWidgets.QLabel(self.groupBox_3)
+        self.groupBox_4 = QtWidgets.QGroupBox()
+        self.image_4 = QtWidgets.QLabel(self.groupBox_4)
+
+        self.vbox.addWidget(self.label)
+        self.vbox.addLayout(self.hbox_1)
+        self.hbox_1.addWidget(self.groupBox_1)
+        self.hbox_1.addWidget(self.groupBox_2)
+        self.vbox.addLayout(self.hbox_2)
+        self.hbox_2.addWidget(self.groupBox_3)
+        self.hbox_2.addWidget(self.groupBox_4)
+
+        self.vbox.addSpacerItem(QtWidgets.QSpacerItem(0, 50))
+
+        self.retranslateUi()
+    
+    def retranslateUi(self):
+        self.label.setText("Добро пожаловать на стартовую страницу Нумеролога! \
+            \n\n\n\tВерсия: {ver}".format(ver=_VERSION))
+        font = QtGui.QFont(load_settings()["font"], pointSize=18)
+        self.label.setFont(font)
+        # self.image_1.setPixmap(get_icons()[""].pixmap())
+        # self.image_2.setPixmap(get_icons()[""].pixmap())
+        # self.image_3.setPixmap(get_icons()[""].pixmap())
+        # self.image_4.setPixmap(get_icons()[""].pixmap())
+        self.groupBox_1.setTitle("Начало работы")
+        self.groupBox_2.setTitle("Настройки")
+        self.groupBox_3.setTitle("Добавление описаний по умолчанию")
+        self.groupBox_4.setTitle("Создание словаря")
 
 
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self, path_default=""):
         super().__init__()
-
-        # TODO:
-        # 1. Научиться нормально документировать :) +-
-        # 2. Развернуть окно в полноэкранном режиме или растянуть на весь экран (есть отличия) +
-        # 3. Проследить изменение размера и положения компонентов при изменении размеров окна +-
-        # ...
-
 
         # Начальный каталог
         self.path_default = path_default
@@ -264,7 +294,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
-# Тестирование модуля
+# Запуск главного модуля
 if __name__ == "__main__":
     import sys
     #######################

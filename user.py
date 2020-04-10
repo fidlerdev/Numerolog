@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from dialog_windows import CloseDialog
 from save_data import save
 from load_data import load
-from datetime import datetime
+from load_data import load_settings
 
 class UserWidget(QtWidgets.QWidget):
 
@@ -20,10 +20,16 @@ class UserWidget(QtWidgets.QWidget):
         # Заголовок
         self.label_head = QtWidgets.QLabel(operation + " клиента")
 
+        for dictionary in load_settings()["dictionary_list"]:
+            self.combobox_main_dictionary.addItem(dictionary)
+            self.combobox_bonus_dictionary.addItem(dictionary)
+
+        self.combobox_bonus_dictionary.setCurrentText("Русский")
+        self.combobox_main_dictionary.setCurrentText("Русский")
+
         # Если данные редактируем, то нужно их загрузить из файла
         if operation == "Редактирование данных":
             data = load(path=path)
-
             self.bonus_list = data["bonus_list"]
 
             self.input_surname.setText(data["surname"])
@@ -39,16 +45,20 @@ class UserWidget(QtWidgets.QWidget):
             # Обратная совместимость с версиями, в которых нет даты добавления доп. Ф. И. О
             for item in data["bonus_list"]:
                 if "time" in item.keys():
-                    self.list_widget.addItem("{surname} {name} {middle_name}\nДобавлено: {time}".format(surname=item["surname"],
+                    self.list_widget.addItem("{surname} {name} {middle_name}\t\tДобавлено: {day}.{month}.{year}".format(surname=item["surname"],
                                                                                     name=item["name"],
                                                                                     middle_name=item["middle_name"],
-                                                                                    time=item["time"]).strip())
+                                                                                    day=item["time"].split(".")[0].rjust(2, "0"),
+                                                                                    month=item["time"].split(".")[1].rjust(2, "0"),
+                                                                                    year=item["time"].split(".")[2]).strip())
                 else:
                     self.list_widget.addItem("{surname} {name} {middle_name}".format(surname=item["surname"],
                                                                                     name=item["name"],
                                                                                     middle_name=item["middle_name"]))
             self.check_for_delete.setChecked(not data["delete"])
+            self.combobox_main_dictionary.setCurrentText(data["dictionary"])
             self.check_void_main()
+            
 
         self.input_name.textChanged.connect(self.check_void_main)
         self.input_bonus_name.textChanged.connect(self.check_void_bonus)
@@ -83,37 +93,32 @@ class UserWidget(QtWidgets.QWidget):
         name = self.input_bonus_name.text()
         middle_name = self.input_bonus_middle_name.text()
         print("——— {surname} {name} {middle_name} добавлен".format(surname=surname, name=name, middle_name=middle_name))
-        today_date = datetime.now()
-        day = str(today_date.day).rjust(2, "0")
-        month = str(today_date.month).rjust(2, "0")
-        year = str(today_date.year)
-        hours = str(today_date.hour).rjust(2, "0")
-        minutes = str(today_date.minute).rjust(2, "0")
+        day = self.input_bonus_date.date().day()
+        month = self.input_bonus_date.date().month()
+        year = self.input_bonus_date.date().year()
         self.bonus_list.append({"surname": surname,
                                 "name": name,
                                 "middle_name": middle_name,
-                                "time": "{day}.{month}.{year} {hours}:{minutes}".format(
+                                "time": "{day}.{month}.{year}".format(
                                     day=day,
                                     month=month,
-                                    year=year,
-                                    hours=hours,
-                                    minutes=minutes
-                                )})
+                                    year=year
+                                ),
+                                "dictionary": self.combobox_bonus_dictionary.currentText()})
 
-        self.list_widget.addItem("{surname} {name} {middle_name}\nДобавлено: {time}".format(surname=surname,
+        self.list_widget.addItem("{surname} {name} {middle_name}\t\tДобавлено: {time}".format(surname=surname,
                                                                             name=name,
                                                                             middle_name=middle_name,
-                                                time="{day}.{month}.{year} {hours}:{minutes}".format(
-                                                    day=day,
-                                                    month=month,
-                                                    year=year,
-                                                    hours=hours,
-                                                    minutes=minutes
+                                                time="{day}.{month}.{year}".format(
+                                                    day=str(day).rjust(2, "0"),
+                                                    month=str(month).rjust(2, "0"),
+                                                    year=str(year).rjust(2, "0")
                                                 )).strip())
 
         self.input_bonus_surname.clear()
         self.input_bonus_name.clear()
         self.input_bonus_middle_name.clear()
+        self.input_bonus_date.clear()
 
     def delete_bonus(self, index): 
         del self.bonus_list[self.list_widget.currentRow()]
@@ -150,7 +155,8 @@ class UserWidget(QtWidgets.QWidget):
             time_of_birth=(self.input_time_birth.time().hour(),
                     self.input_time_birth.time().minute()),
             moon_birth=self.input_moon_birth.value(),
-            delete=delete)
+            delete=delete,
+            dictionary=self.combobox_main_dictionary.currentText())
 
     def closeEvent(self, event):
         if not self.closing:
@@ -197,7 +203,7 @@ class UserWidget(QtWidgets.QWidget):
 
     def setupUi(self, Form):
         self.name_font = QtGui.QFont("Helvetica", 11, italic=True)
-        Form.resize(592, 667)
+        Form.resize(800, 667)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Form)
         self.label_head = QtWidgets.QLabel(Form)
         self.label_head.setAlignment(QtCore.Qt.AlignCenter)
@@ -228,6 +234,11 @@ class UserWidget(QtWidgets.QWidget):
         self.input_middle_name.customContextMenuRequested.connect(self.custom_context_menu)
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.input_middle_name)
         self.verticalLayout_2.addWidget(self.groupBox)
+        # Выбор основного алфавита  
+        self.label_main_dictionary = QtWidgets.QLabel()
+        self.verticalLayout_2.addWidget(self.label_main_dictionary)
+        self.combobox_main_dictionary = QtWidgets.QComboBox()
+        self.verticalLayout_2.addWidget(self.combobox_main_dictionary)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setContentsMargins(-1, 0, -1, -1)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
@@ -309,10 +320,23 @@ class UserWidget(QtWidgets.QWidget):
         self.input_bonus_middle_name.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.input_bonus_middle_name.customContextMenuRequested.connect(self.custom_context_menu)
         self.formLayout_4.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.input_bonus_middle_name)
+        # Дата добавления дополнительных Ф. И. О. по документам
+        self.label_bonus_date = QtWidgets.QLabel(self.groupBox_3)
+        self.formLayout_4.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_bonus_date)
+        self.input_bonus_date = QtWidgets.QDateEdit(self.groupBox_3)
+        self.input_bonus_date.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.input_bonus_date.customContextMenuRequested.connect(self.custom_context_menu)
+        self.input_bonus_date.setCalendarPopup(True)
+        self.formLayout_4.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.input_bonus_date)
+        # Алфавит для дополнительных Ф. И. О.
+        self.label_bonus_dictionary = QtWidgets.QLabel(self.groupBox_3)
+        self.formLayout_4.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_bonus_dictionary)
+        self.combobox_bonus_dictionary = QtWidgets.QComboBox(self.groupBox_3)
+        self.formLayout_4.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.combobox_bonus_dictionary)
         self.btn_add_user_to_list = QtWidgets.QPushButton(self.groupBox_3)
         self.btn_add_user_to_list.setEnabled(False)
         self.btn_add_user_to_list.setAutoDefault(False)
-        self.formLayout_4.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.btn_add_user_to_list)
+        self.formLayout_4.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.btn_add_user_to_list)
         self.horizontalLayout_4.addWidget(self.groupBox_3)
         self.groupBox_4 = QtWidgets.QGroupBox(Form)
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_4)
@@ -349,6 +373,8 @@ class UserWidget(QtWidgets.QWidget):
         self.check_for_delete.setText("Нельзя удалить клиента")
         self.label_name.setText("Имя:")
         self.label_middle_name.setText("Отчество:")
+        self.label_main_dictionary.setText("Выберите алфавит:")
+        self.label_bonus_dictionary.setText("Выберите алфавит:")
         self.groupBox_2.setTitle("Даты и время")
         self.label_date_birth.setText("Дата рождения:")
         self.label_time_birth.setText("Время рождения:")
@@ -357,6 +383,7 @@ class UserWidget(QtWidgets.QWidget):
         self.label_bonus_surname.setText("Фамилия:")
         self.label_bonus_name.setText("Имя:")
         self.label_bonus_midle_name.setText("Отчество:")
+        self.label_bonus_date.setText("Дата добавления:")
         self.btn_add_user_to_list.setText("Добавить")
         self.groupBox_4.setTitle("Список измененных Ф. И. О.")
         self.btn_delete_selected_item.setText("Удалить")

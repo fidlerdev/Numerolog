@@ -27,7 +27,8 @@ def save(path, **kwargs):
         "date_of_birth":    kwargs["date_of_birth"],
         "time_of_birth":    kwargs["time_of_birth"],
         "moon_birth":       kwargs["moon_birth"],
-        "delete":           kwargs["delete"]
+        "delete":           kwargs["delete"],
+        "dictionary":       kwargs["dictionary"]
     }
     with open(path, "w") as file:
         json.dump(data, file, indent=4)
@@ -47,12 +48,65 @@ def save_settings(create_new=False, **kwargs):
         """
     data = {}
     # Сохранение пользовательских настроек - 1
+    # Добавляем русский язык по умолчанию
     if create_new:
         data = {
             "save_chosen_working_dir":  True,
-            "chosen_working_dir_path":  "",
-
-            "dictionary_list":          {},
+            "chosen_working_dir_path":  "", 
+            "dictionary_list": {"\u0420\u0443\u0441\u0441\u043a\u0438\u0439": [
+                                [
+                                    "\u0410",
+                                    "\u0418",
+                                    "\u0421",
+                                    "\u042a"
+                                ],
+                                [
+                                    "\u0411",
+                                    "\u0419",
+                                    "\u0422",
+                                    "\u042b"
+                                ],
+                                [
+                                    "\u0412",
+                                    "\u041a",
+                                    "\u0423",
+                                    "\u042c"
+                                ],
+                                [
+                                    "\u0413",
+                                    "\u041b",
+                                    "\u0424",
+                                    "\u042d"
+                                ],
+                                [
+                                    "\u0414",
+                                    "\u041c",
+                                    "\u0425",
+                                    "\u042e"
+                                ],
+                                [
+                                    "\u0415",
+                                    "\u041d",
+                                    "\u0426",
+                                    "\u042f"
+                                ],
+                                [
+                                    "\u0401",
+                                    "\u041e",
+                                    "\u0427"
+                                ],
+                                [
+                                    "\u0416",
+                                    "\u041f",
+                                    "\u0428"
+                                ],
+                                [
+                                    "\u0417",
+                                    "\u0420",
+                                    "\u0429"
+                                ]
+                            ],
+        },
 
             "font":                     "Helvetica",
             "font_size":                10,

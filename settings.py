@@ -95,6 +95,7 @@ class SettingsWidget(QtWidgets.QWidget):
                 self.listWidget_dicts.addItem(self.input_alpha_name.text())
                 self.input_alpha_name.clear()
                 self.txt_alphabet.clear()
+                self.btn_save.click()
 
 
     def on_close(self):
