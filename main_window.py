@@ -143,7 +143,6 @@ class MainWindow(QtWidgets.QMainWindow):
             print("Файл с настройками не найден, создаем новый...")
             save_settings(create_new=True)
         self.settings = SettingsWidget()
-        self.settings.setWindowModality(QtCore.Qt.ApplicationModal)
         self.settings.show()
         
 
