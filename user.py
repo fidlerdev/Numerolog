@@ -72,7 +72,6 @@ class UserWidget(QtWidgets.QWidget):
 
         self.input_bonus_name.textChanged.connect(self.check_void_bonus)
 
-
         self.btn_add_user_to_list.clicked.connect(self.add_bonus)
 
         # При нажатии на ячейку доп имён актвируем кнопку удаления
@@ -161,6 +160,9 @@ class UserWidget(QtWidgets.QWidget):
         self.btn_delete_selected_item.update()
         print("——— {name} удалён".format(name=del_item.text(1)))
         print(self.bonus_list)
+        # Фиксируем, что произошло изменение -> кнопка сохранения включена
+        self.btn_save.setEnabled(True)
+        self.btn_save.repaint()
 
     def quit_action(self):
         if not self.btn_save.isEnabled():
