@@ -80,11 +80,11 @@ class SettingsWidget(QtWidgets.QWidget):
         text = self.txt_alphabet.toPlainText().strip()
         alphabet = [[], [], [], [], [], [], [], [], []]
         if len(text.split()) > 1:
-            msg = QtWidgets.QMessageBox.warning(self, "Внимание",
+            QtWidgets.QMessageBox.warning(self, "Внимание",
                         "Удалите пробелы между символами алфавита", defaultButton=QtWidgets.QMessageBox.Ok)
         else:
             if len(self.listWidget_dicts.findItems(self.input_alpha_name.text(), QtCore.Qt.MatchExactly)) > 0:
-                msg = QtWidgets.QMessageBox.warning(self, "Внимание",
+                QtWidgets.QMessageBox.warning(self, "Внимание",
                         "Алфавит с таким именем уже существует", defaultButton=QtWidgets.QMessageBox.Ok)
                 
 

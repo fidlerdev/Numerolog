@@ -10,7 +10,7 @@ from PyQt5 import QtGui
 # Класс с определением собственных диалоговых окон
 from dialog_windows import CloseDialog, CreateDialog, CreateDialog_ext
 
-from treeView_page import *
+from treeView_page import TreeViewWindow
 
 from load_resources import get_icons
 from load_data import load_settings
@@ -137,7 +137,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
     
     def open_settings(self):
-        data = {}
         try:
             load_settings()
         except FileNotFoundError:
