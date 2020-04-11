@@ -44,49 +44,66 @@ class UserWidget(QtWidgets.QWidget):
 
             # Обратная совместимость с версиями, в которых нет даты добавления доп. Ф. И. О
             for item in data["bonus_list"]:
-                if "time" in item.keys():
-                    self.list_widget.addItem("{surname} {name} {middle_name}\t\tДобавлено: {day}.{month}.{year}".format(surname=item["surname"],
-                                                                                    name=item["name"],
-                                                                                    middle_name=item["middle_name"],
-                                                                                    day=item["time"].split(".")[0].rjust(2, "0"),
-                                                                                    month=item["time"].split(".")[1].rjust(2, "0"),
-                                                                                    year=item["time"].split(".")[2]).strip())
-                else:
-                    self.list_widget.addItem("{surname} {name} {middle_name}".format(surname=item["surname"],
-                                                                                    name=item["name"],
-                                                                                    middle_name=item["middle_name"]))
+                tree_item = QtWidgets.QTreeWidgetItem(self.tree_widget)
+                tree_item.setText(1, "{surname} {name} {middle_name}".format(
+                    surname=item["surname"],
+                    name=item["name"],
+                    middle_name=item["middle_name"]
+                    ).strip())
+                tree_item.setText(0, "{day}.{month}.{year}".format(
+                    day=item["time"].split(".")[0].rjust(2, "0"),
+                    month=item["time"].split(".")[1].rjust(2, "0"),
+                    year=item["time"].split(".")[2]
+                    ).strip())
+                for i in range(2):
+                    self.tree_widget.resizeColumnToContents(i)
             self.check_for_delete.setChecked(not data["delete"])
             self.combobox_main_dictionary.setCurrentText(data["dictionary"])
-            self.check_void_main()
+            # self.check_changes()
             
+        self.input_surname.textChanged.connect(self.check_changes)
+        self.input_name.textChanged.connect(self.check_changes)
+        self.input_middle_name.textChanged.connect(self.check_changes)
+        self.combobox_main_dictionary.currentIndexChanged.connect(self.check_changes)
+        self.input_date_birth.dateChanged.connect(self.check_changes)
+        self.input_time_birth.timeChanged.connect(self.check_changes)
+        self.input_moon_birth.valueChanged.connect(self.check_changes)
+        self.check_for_delete.stateChanged.connect(self.check_changes)
 
-        self.input_name.textChanged.connect(self.check_void_main)
         self.input_bonus_name.textChanged.connect(self.check_void_bonus)
+
 
         self.btn_add_user_to_list.clicked.connect(self.add_bonus)
 
         # При нажатии на ячейку доп имён актвируем кнопку удаления
-        self.list_widget.itemClicked.connect(lambda: self.btn_delete_selected_item.setEnabled(True))
+        self.tree_widget.itemClicked.connect(lambda: self.btn_delete_selected_item.setEnabled(True))
 
         self.btn_delete_selected_item.clicked.connect(self.delete_bonus)
         
         self.btn_quit.clicked.connect(self.quit_action)
         self.btn_save.clicked.connect(lambda: self.save(path))
 
-    def check_void_main(self):
-        # Проверка полей на наличие данных
+    def check_changes(self):
+
+        self.btn_save.setEnabled(True)
+
+        # Проверка полей на наличие основного имени
         filled = self.input_name.text().strip()
         if filled:
             self.btn_save.setEnabled(True)
         else:
             self.btn_save.setEnabled(False)
+        self.btn_save.repaint()
         
+
     def check_void_bonus(self):
+        # Проверка на наличие дополнительного имени
         filled = self.input_bonus_name.text().strip()
         if filled:
             self.btn_add_user_to_list.setEnabled(True)
         else:
             self.btn_add_user_to_list.setEnabled(False)
+        
 
     def add_bonus(self):
         surname = self.input_bonus_surname.text()
@@ -105,41 +122,71 @@ class UserWidget(QtWidgets.QWidget):
                                     year=year
                                 ),
                                 "dictionary": self.combobox_bonus_dictionary.currentText()})
-
-        self.list_widget.addItem("{surname} {name} {middle_name}\t\tДобавлено: {time}".format(surname=surname,
-                                                                            name=name,
-                                                                            middle_name=middle_name,
-                                                time="{day}.{month}.{year}".format(
-                                                    day=str(day).rjust(2, "0"),
-                                                    month=str(month).rjust(2, "0"),
-                                                    year=str(year).rjust(2, "0")
-                                                )).strip())
+        item = QtWidgets.QTreeWidgetItem(self.tree_widget)
+        item.setText(1, "{surname} {name} {middle_name}".format(
+            surname=surname,
+            name=name,
+            middle_name=middle_name
+            ).strip())
+        item.setText(0, "{day}.{month}.{year}".format(
+            day=str(day).rjust(2, "0"),
+            month=str(month).rjust(2, "0"),
+            year=str(year)
+            ).strip())
+        for i in range(2):
+            self.tree_widget.resizeColumnToContents(i)
 
         self.input_bonus_surname.clear()
+        self.input_bonus_surname.repaint()
+
         self.input_bonus_name.clear()
+        self.input_bonus_name.repaint()
+
         self.input_bonus_middle_name.clear()
+        self.input_bonus_middle_name.repaint()
+
         self.input_bonus_date.clear()
+        self.input_bonus_date.repaint()
+
+        # Фиксируем, что произошло изменение -> кнопка сохранения включена
+        self.btn_save.setEnabled(True)
+        self.btn_save.repaint()
+
 
     def delete_bonus(self, index): 
-        del self.bonus_list[self.list_widget.currentRow()]
-        del_item = self.list_widget.takeItem(self.list_widget.currentRow())
-        if self.list_widget.count() == 0: self.btn_delete_selected_item.setEnabled(False)
+        del self.bonus_list[self.tree_widget.selectedIndexes()[0].row()]
+        del_item = self.tree_widget.takeTopLevelItem(self.tree_widget.selectedIndexes()[0].row())
+        if self.tree_widget.topLevelItemCount() == 0: self.btn_delete_selected_item.setEnabled(False)
         else: self.btn_delete_selected_item.setEnabled(True)
         self.btn_delete_selected_item.update()
-        print("——— {name} удалён".format(name=del_item.text()))
+        print("——— {name} удалён".format(name=del_item.text(1)))
+        print(self.bonus_list)
+
+    def quit_action(self):
+        if not self.btn_save.isEnabled():
+            self.closing=True
+            self.close()
+        else:
+            result = self.on_close()
+            self.closing = True
+            if result == QtWidgets.QMessageBox.Accepted:
+                self.close()
 
     def on_close(self):
         dialog = CloseDialog(self)
         # Переопределяем надпись в модальном окне
-        dialog.label.setText("Вы действительно хотите закрыть окно?\nВсе несохраненные данные будут утеряны")
-
+        dialog.label.setText("Вы действительно хотите закрыть окно?\nУ Вас есть несохраненные данные...")
         return dialog.exec()
 
-    def quit_action(self):
-        result = self.on_close()
-        self.closing = True
-        if result == QtWidgets.QMessageBox.Accepted:
-            self.close()
+    def closeEvent(self, event):
+        if not self.closing:
+            result = self.on_close()
+            if result == QtWidgets.QMessageBox.Accepted:
+                event.accept()
+            else:
+                event.ignore()
+        else:
+            event.accept()
 
     # Сохраняем данные в файл по указанному пути
     def save(self, path):
@@ -157,16 +204,8 @@ class UserWidget(QtWidgets.QWidget):
             moon_birth=self.input_moon_birth.value(),
             delete=delete,
             dictionary=self.combobox_main_dictionary.currentText())
-
-    def closeEvent(self, event):
-        if not self.closing:
-            result = self.on_close()
-            if result == QtWidgets.QMessageBox.Accepted:
-                event.accept()
-            else:
-                event.ignore()
-        else:
-            event.accept()
+        self.btn_save.setEnabled(False)
+        self.btn_save.repaint()
 
     def custom_context_menu(self, pos):
         menu = QtWidgets.QMenu(self)
@@ -340,8 +379,12 @@ class UserWidget(QtWidgets.QWidget):
         self.horizontalLayout_4.addWidget(self.groupBox_3)
         self.groupBox_4 = QtWidgets.QGroupBox(Form)
         self.verticalLayout = QtWidgets.QVBoxLayout(self.groupBox_4)
-        self.list_widget = QtWidgets.QListWidget(self.groupBox_4)
-        self.verticalLayout.addWidget(self.list_widget)
+        self.tree_widget = QtWidgets.QTreeWidget(self.groupBox_4)
+        self.tree_widget.headerItem().setText(0, "Дата")
+        self.tree_widget.headerItem().setTextAlignment(0, QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.tree_widget.headerItem().setText(1, "Ф. И. О.")
+        self.tree_widget.headerItem().setTextAlignment(1, QtCore.Qt.AlignLeft|QtCore.Qt.AlignVCenter)
+        self.verticalLayout.addWidget(self.tree_widget)
         self.delete_layout = QtWidgets.QVBoxLayout()
         self.btn_delete_selected_item = QtWidgets.QPushButton(self.groupBox_4)
         self.btn_delete_selected_item.setEnabled(False)
