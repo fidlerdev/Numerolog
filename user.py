@@ -181,12 +181,15 @@ class UserWidget(QtWidgets.QWidget):
         return dialog.exec()
 
     def closeEvent(self, event):
-        if not self.closing:
-            result = self.on_close()
-            if result == QtWidgets.QMessageBox.Accepted:
-                event.accept()
+        if self.btn_save.isEnabled():
+            if not self.closing:
+                result = self.on_close()
+                if result == QtWidgets.QMessageBox.Accepted:
+                    event.accept()
+                else:
+                    event.ignore()
             else:
-                event.ignore()
+                event.accept()
         else:
             event.accept()
 
