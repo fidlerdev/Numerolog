@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from os import sep, getcwd
+from os import sep, getcwd, path
 from load_data import load_settings
 from save_data import save_settings
 from dialog_windows import CloseDialog
 from dict_window import DictWidget
+from desc_window import DescriptionWidget
+import sqlite3
 
 class SettingsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -26,6 +28,31 @@ class SettingsWidget(QtWidgets.QWidget):
         self.btn_save_dict.clicked.connect(self.save_dict)
         self.listWidget_dicts.itemClicked.connect(self.itemClicked)
         self.btn_new_dict.clicked.connect(self.new_dict_clicked)
+        self.btn_descriptions.clicked.connect(self.open_descriptions)
+
+    def open_descriptions(self):
+        # Проверка на наличие базы данных с описаниями
+        self.check_db()
+        self.description_widget = DescriptionWidget()
+        self.description_widget.show()
+
+    def check_db(self):
+        if path.exists("desc.db"):
+            print("База с описаниями найдена")
+        else:
+            with open("desc.db", "w"):
+                print("База с описаниями создана")
+            con = sqlite3.connect("desc.db")
+            cur = con.cursor()
+            cur.execute(
+            """
+            CREATE TABLE descriptions (
+                id INTEGER UNIQUE,
+                desc_list TEXT
+                );
+            """
+            )
+            con.commit()
 
 
     def delete_item(self):
@@ -169,6 +196,8 @@ class SettingsWidget(QtWidgets.QWidget):
         self.gridLayout_2.setContentsMargins(-1, 0, -1, 0)
         self.groupBox = QtWidgets.QGroupBox(Form)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.groupBox)
+        self.btn_descriptions = QtWidgets.QPushButton(self.groupBox)
+        self.verticalLayout_4.addWidget(self.btn_descriptions)
         self.label = QtWidgets.QLabel(self.groupBox)
         self.verticalLayout_4.addWidget(self.label)
         self.listWidget_dicts = QtWidgets.QListWidget(self.groupBox)
@@ -243,7 +272,6 @@ class SettingsWidget(QtWidgets.QWidget):
 
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.comboBox_icons)
         self.gridLayout_2.addWidget(self.groupBox_2, 0, 1)
-################################################################################################################################################################################################################################################################
         self.groupBox_4 = QtWidgets.QGroupBox(Form)
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.groupBox_4)
         self.input_alpha_name = QtWidgets.QLineEdit(self.groupBox_4)
@@ -281,8 +309,6 @@ class SettingsWidget(QtWidgets.QWidget):
         horizontalLayout.addWidget(self.btn_save_dict)
 
         self.verticalLayout_5.addLayout(horizontalLayout)
-        ################################################################################################################################################################################################################################################
-
         self.gridLayout_2.addWidget(self.groupBox_4, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout_2)
         spacerItem1 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -319,6 +345,7 @@ class SettingsWidget(QtWidgets.QWidget):
         Form.setWindowTitle(_translate("Form", "Настройки"))
         self.groupBox.setTitle(_translate("Form", "Расчёты"))
         self.label.setText(_translate("Form", "Список алфавитов:"))
+        self.btn_descriptions.setText("База с описаниями")
         self.btn_delete.setText(_translate("Form", "Удалить"))
         self.groupBox_3.setTitle(_translate("Form", "Основные"))
         self.check_save_wd.setText(_translate("Form", "Запоминать выбранную рабочую область"))
