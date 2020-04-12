@@ -53,6 +53,8 @@ class SettingsWidget(QtWidgets.QWidget):
             """
             )
             con.commit()
+            cur.close()
+            con.close()
 
 
     def delete_item(self):
