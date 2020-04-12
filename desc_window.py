@@ -17,6 +17,7 @@ class DescriptionWidget(QtWidgets.QWidget):
 
         self.btn_add_value.setEnabled(False)
         self.btn_save_description.setEnabled(False)
+        self.btn_delete.setEnabled(False)
 
         # Подключаемся к базе данных...
         self.con = sqlite3.connect("desc.db")
@@ -25,36 +26,70 @@ class DescriptionWidget(QtWidgets.QWidget):
         # Загружаем данные из базы данных
         self.load()
 
+        # Подключаем слоты к сигналам
         self.btn_add_value.clicked.connect(self.on_add_value)
         self.btn_save_description.clicked.connect(self.on_save)
         self.btn_close.clicked.connect(self.on_close)
         self.list_widget.itemClicked.connect(self.load_values)
         self.combo_box.currentIndexChanged.connect(self.on_value_select)
         self.text_description.textChanged.connect(self.check_text_void)
+        self.btn_delete.clicked.connect(self.on_delete_value)
+    
+    def on_delete_value(self):
+        num = self.item.data(QtCore.Qt.UserRole)
+        values = json.loads(self.get_values(ind=num)[0][1])
+        del values[self.combo_box.currentText()]
+        values = json.dumps(values)
+        self.cur.execute(
+            """
+            DELETE FROM descriptions WHERE id=?
+            """, (num, )
+        )
+        self.con.commit()
 
+        self.cur.execute(
+            """
+            INSERT INTO descriptions VALUES (?, ?)
+            """, (num, values)
+        )
+        self.con.commit()
+        self.combo_box.removeItem(self.combo_box.currentIndex())
+        self.combo_box.repaint()
+        self.text_description.repaint()
+
+    # Вызывается при изменении текста описания
     def check_text_void(self):
         filled = self.text_description.toPlainText()
-        if filled.strip():
+        if filled.strip() and self.combo_box.count():
             self.btn_save_description.setEnabled(True)
         else:
             self.btn_save_description.setEnabled(False)
 
+    # Вызывается при выборе значения из combo_box
     def on_value_select(self, index):
         self.text_description.setPlainText(self.combo_box.itemData(index, QtCore.Qt.UserRole))
-        
+        if self.combo_box.count():
+            self.btn_delete.setEnabled(True)
+        else:
+            self.btn_delete.setEnabled(False)
+
+    # Вызывается при выборе алгоритма
     def load_values(self, item):
+
+        self.load()
+
         self.combo_box.clear()
         self.btn_add_value.setEnabled(True)
         self.item = item
         values = self.get_values(ind=item.data(QtCore.Qt.UserRole))
-        print(self.descriptions)
-        print(values)
-        print(item.data(QtCore.Qt.UserRole))
+        print("self.descriptions:", self.descriptions)
+        print("values:", values)
+        print("item.data:", item.data(QtCore.Qt.UserRole))
         # Если найдены значения для выбранного алгоритма
         if values:
-            print(type(values[0][1]))
+            print("type(values[0][1]):", type(values[0][1]))
             values = json.loads(values[0][1])
-            print(type(values))
+            print("values:", type(values))
             for key, value in values.items():
                 self.combo_box.addItem(key, value)
             self.combo_box.repaint()
@@ -95,13 +130,16 @@ class DescriptionWidget(QtWidgets.QWidget):
             """, (self.item.data(QtCore.Qt.UserRole), values)
         )
         self.con.commit()
+        # Обновляем self.descriptions
+        self.load()
         # Добавляем описание в combo_box
         self.combo_box.setItemData(
             self.combo_box.findText(str(cur_val)),  # Index
             self.text_description.toPlainText(),    # Value
             QtCore.Qt.UserRole                      # Role
             )
-    
+
+    # Вызывается при нажатии кнопки "Добавить"
     def on_add_value(self):
         all_items = [self.combo_box.itemText(i) for i in range(self.combo_box.count())]
         if str(self.spin_box.value()) in all_items:
@@ -166,8 +204,8 @@ class DescriptionWidget(QtWidgets.QWidget):
         self.horizontalLayout_3.setContentsMargins(-1, -1, -1, 16)
         self.btn_save_description = QtWidgets.QPushButton(self.group_box)
         self.horizontalLayout_3.addWidget(self.btn_save_description)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem1)
+        self.btn_delete = QtWidgets.QPushButton(self.group_box)
+        self.horizontalLayout_3.addWidget(self.btn_delete)
         self.verticalLayout_2.addLayout(self.horizontalLayout_3)
         self.verticalLayout.addWidget(self.group_box)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -230,6 +268,7 @@ class DescriptionWidget(QtWidgets.QWidget):
         self.btn_add_value.setText("Добавить")
         self.btn_save_description.setText("Сохранить описание")
         self.btn_close.setText("Закрыть")
+        self.btn_delete.setText("Удалить описание")
 
 if __name__ == "__main__":
     import sys
