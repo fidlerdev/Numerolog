@@ -9,7 +9,7 @@ from result_widget import ResultWidget
 class CalculateWidget(QtWidgets.QWidget):
     def __init__(self, parent, path):
         QtWidgets.QWidget.__init__(self, parent)
-
+        self.path = path
         self.icons = get_icons()
         self.setupUi()
         self.load_data(path=path)
@@ -41,9 +41,6 @@ class CalculateWidget(QtWidgets.QWidget):
 
     def calculate(self):
         row = self.list_calculate.row(self.selected_item)
-        self.result_widget = ResultWidget()
-        # self.result_widget.setModality(QtCore.Qt.ApplicationModal)
-        self.result_widget.show()
         # Карта Рождения
         if row == 0:
             self.header_text = "Карта Рождения"
@@ -94,18 +91,21 @@ class CalculateWidget(QtWidgets.QWidget):
             self.header_text = "Коды по Кабарухиной"
             self.value = 0
 
-        self.result_widget.lbl_header.setText(self.header_text)
-        self.result_widget.input_value.setText(str(self.value))
+        self.result_widget = ResultWidget(
+            path=self.path,
+            header_text=self.header_text,
+            value=self.value,
+            row_id=row
+            )
+        self.result_widget.show()
+        
     def setupUi(self):
         self.resize(361, 607)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.gridLayout.setObjectName("gridLayout")
         self.btn_print = QtWidgets.QPushButton(self)
         self.btn_print.setEnabled(False)
-        self.btn_print.setObjectName("btn_print")
         self.gridLayout.addWidget(self.btn_print, 5, 1, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(30, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 3, 2, 1, 1)
@@ -115,10 +115,8 @@ class CalculateWidget(QtWidgets.QWidget):
         self.gridLayout.addItem(spacerItem2, 2, 1, 1, 1)
         self.btn_calculate = QtWidgets.QPushButton(self)
         self.btn_calculate.setEnabled(False)
-        self.btn_calculate.setObjectName("btn_calculate")
         self.gridLayout.addWidget(self.btn_calculate, 4, 1, 1, 1)
         self.btn_close = QtWidgets.QPushButton(self)
-        self.btn_close.setObjectName("btn_close")
         self.gridLayout.addWidget(self.btn_close, 7, 1, 1, 1)
         self.list_calculate = QtWidgets.QListWidget(self)
         self.list_calculate.setFrameShape(QtWidgets.QFrame.Box)
@@ -128,7 +126,6 @@ class CalculateWidget(QtWidgets.QWidget):
         self.list_calculate.setDefaultDropAction(QtCore.Qt.CopyAction)
         self.list_calculate.setProperty("isWrapping", False)
         self.list_calculate.setResizeMode(QtWidgets.QListView.Fixed)
-        self.list_calculate.setObjectName("list_calculate")
 
         item = QtWidgets.QListWidgetItem()
         self.list_calculate.addItem(item)
@@ -162,36 +159,24 @@ class CalculateWidget(QtWidgets.QWidget):
 
         self.gridLayout.addWidget(self.list_calculate, 3, 1, 1, 1)
         self.groupbox_date = QtWidgets.QGroupBox(self)
-        self.groupbox_date.setObjectName("groupbox_date")
         self.gridLayout_3 = QtWidgets.QGridLayout(self.groupbox_date)
-        self.gridLayout_3.setObjectName("gridLayout_3")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.label_date_of_birth = QtWidgets.QLabel(self.groupbox_date)
-        self.label_date_of_birth.setObjectName("label_date_of_birth")
         self.verticalLayout_3.addWidget(self.label_date_of_birth)
         self.label_time_of_birth = QtWidgets.QLabel(self.groupbox_date)
-        self.label_time_of_birth.setObjectName("label_time_of_birth")
         self.verticalLayout_3.addWidget(self.label_time_of_birth)
         self.label_moon_birth = QtWidgets.QLabel(self.groupbox_date)
-        self.label_moon_birth.setObjectName("label_moon_birth")
         self.verticalLayout_3.addWidget(self.label_moon_birth)
         self.gridLayout_3.addLayout(self.verticalLayout_3, 0, 0, 1, 1)
         self.gridLayout.addWidget(self.groupbox_date, 1, 1, 1, 1)
         self.groupbox_name = QtWidgets.QGroupBox(self)
-        self.groupbox_name.setObjectName("groupbox_name")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.groupbox_name)
-        self.gridLayout_2.setObjectName("gridLayout_2")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.label_surname = QtWidgets.QLabel(self.groupbox_name)
-        self.label_surname.setObjectName("label_surname")
         self.verticalLayout_2.addWidget(self.label_surname)
         self.label_name = QtWidgets.QLabel(self.groupbox_name)
-        self.label_name.setObjectName("label_name")
         self.verticalLayout_2.addWidget(self.label_name)
         self.label_middle_name = QtWidgets.QLabel(self.groupbox_name)
-        self.label_middle_name.setObjectName("label_middle_name")
         self.verticalLayout_2.addWidget(self.label_middle_name)
         self.gridLayout_2.addLayout(self.verticalLayout_2, 0, 0, 1, 1)
         self.gridLayout.addWidget(self.groupbox_name, 0, 1, 1, 1)
@@ -247,6 +232,6 @@ class CalculateWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    widget = CalculateWidget(None, r"C:\Users\fidler\Desktop\Контрагенты\папка\ываыв.json")
+    widget = CalculateWidget(None, r"/Users/fidler/Desktop/Контрагенты/Ваня.json")
     widget.show()
     sys.exit(app.exec())

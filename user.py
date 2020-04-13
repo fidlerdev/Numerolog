@@ -5,6 +5,7 @@ from dialog_windows import CloseDialog
 from save_data import save
 from load_data import load
 from load_data import load_settings
+import os
 
 class UserWidget(QtWidgets.QWidget):
 
@@ -196,19 +197,41 @@ class UserWidget(QtWidgets.QWidget):
     # Сохраняем данные в файл по указанному пути
     def save(self, path):
         delete = False if self.check_for_delete.isChecked() else True
-        save(path=path,
-            surname=self.input_surname.text(),
-            name=self.input_name.text(),
-            middle_name=self.input_middle_name.text(),
-            bonus_list=self.bonus_list,
-            date_of_birth=(self.input_date_birth.date().day(),
-                    self.input_date_birth.date().month(),
-                    self.input_date_birth.date().year()),
-            time_of_birth=(self.input_time_birth.time().hour(),
-                    self.input_time_birth.time().minute()),
-            moon_birth=self.input_moon_birth.value(),
-            delete=delete,
-            dictionary=self.combobox_main_dictionary.currentText())
+        if os.path.exists(path):
+            save(
+                path=path,
+                surname=self.input_surname.text(),
+                name=self.input_name.text(),
+                middle_name=self.input_middle_name.text(),
+                bonus_list=self.bonus_list,
+                date_of_birth=(self.input_date_birth.date().day(),
+                        self.input_date_birth.date().month(),
+                        self.input_date_birth.date().year()),
+                time_of_birth=(self.input_time_birth.time().hour(),
+                        self.input_time_birth.time().minute()),
+                moon_birth=self.input_moon_birth.value(),
+                delete=delete,
+                dictionary=self.combobox_main_dictionary.currentText(),
+                desc_list=load(path=path)["desc_list"]
+                )
+        else:
+            save(
+                path=path,
+                surname=self.input_surname.text(),
+                name=self.input_name.text(),
+                middle_name=self.input_middle_name.text(),
+                bonus_list=self.bonus_list,
+                date_of_birth=(self.input_date_birth.date().day(),
+                        self.input_date_birth.date().month(),
+                        self.input_date_birth.date().year()),
+                time_of_birth=(self.input_time_birth.time().hour(),
+                        self.input_time_birth.time().minute()),
+                moon_birth=self.input_moon_birth.value(),
+                delete=delete,
+                dictionary=self.combobox_main_dictionary.currentText(),
+                desc_list=None # [tuple(row_id, ditionary{value: description}), ...]
+                )
+
         self.btn_save.setEnabled(False)
         self.btn_save.repaint()
 

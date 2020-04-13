@@ -16,6 +16,8 @@ def load(path):
         time_of_birth
         moon_birth
         delete
+        dicitonary
+        desc_list
     """
     data = ""
     with open(path, "r") as file:

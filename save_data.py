@@ -18,6 +18,7 @@ def save(path, **kwargs):
         time_of_birth
         moon_birth
         delete
+        desc_list
     """
     data = {
         "surname":          kwargs["surname"],
@@ -28,11 +29,39 @@ def save(path, **kwargs):
         "time_of_birth":    kwargs["time_of_birth"],
         "moon_birth":       kwargs["moon_birth"],
         "delete":           kwargs["delete"],
-        "dictionary":       kwargs["dictionary"]
+        "dictionary":       kwargs["dictionary"],
+        "desc_list":        kwargs["desc_list"]
     }
     with open(path, "w") as file:
         json.dump(data, file, indent=4)
     return data
+
+def save_desc(path, desc, value, row_id):
+    from load_data import load
+    data = load(path=path)
+    desc_list = data["desc_list"]
+    for ind, desc in enumerate(desc_list()):
+        not_found = True
+        if desc[0] == row_id:
+            desc_list[ind][1][value] = desc
+            not_found = False
+        if not_found:
+            pass
+
+
+
+    data = {
+        "surname":          data["surname"],
+        "name":             data["name"],
+        "middle_name":      data["middle_name"],
+        "bonus_list":       data["bonus_list"],
+        "date_of_birth":    data["date_of_birth"],
+        "time_of_birth":    data["time_of_birth"],
+        "moon_birth":       data["moon_birth"],
+        "delete":           data["delete"],
+        "dictionary":       data["dictionary"],
+        "desc_list":        data["desc_list"]
+    }
 
 def save_settings(create_new=False, **kwargs):
     """
