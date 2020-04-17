@@ -17,6 +17,8 @@ def get_icons():
     icons = {
         "MAIN":                 Icons(os.getcwd() + "{0}resources{0}main_icon_100.png".format(os.sep)),
         "main":                 Icons(os.getcwd() + "{0}resources{0}main_icon_32.png".format(os.sep)),
+        "main_beta_1":          Icons(os.getcwd() + "{0}resources{0}main_icon.png".format(os.sep)),
+        "main_beta_2":          Icons(os.getcwd() + "{0}resources{0}main_beta_2.png".format(os.sep)),
         "add_folder":           Icons(_icons_path + "add_folder.png"),
         "add_user":             Icons(_icons_path + "add_user.png"),
         "open_workspace":       Icons(_icons_path + "open_workspace.png"),

@@ -304,7 +304,7 @@ if __name__ == "__main__":
         data = save_settings(create_new=True)
     #######################
     app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(get_icons()["main"])
+    app.setWindowIcon(get_icons()["main_beta_2"])
     app.setFont(QtGui.QFont(data["font"], data["font_size"]))
     
     m_window = MainWindow()

@@ -36,19 +36,6 @@ def save(path, **kwargs):
         json.dump(data, file, indent=4)
     return data
 
-def save_desc(path, desc, value, row_id):
-    from load_data import load
-    data = load(path=path)
-    desc_list = data["desc_list"]
-    for ind, desc in enumerate(desc_list()):
-        not_found = True
-        if desc[0] == row_id:
-            desc_list[ind][1][value] = desc
-            not_found = False
-        if not_found:
-            pass
-
-
 
     data = {
         "surname":          data["surname"],

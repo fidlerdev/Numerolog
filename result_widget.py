@@ -3,6 +3,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import sqlite3, json
 from load_data import load
+from save_data import save
 
 class ResultWidget(QtWidgets.QWidget):
 
@@ -25,6 +26,22 @@ class ResultWidget(QtWidgets.QWidget):
 
         self.btn_close.clicked.connect(self.on_close)
         self.btn_save.clicked.connect(self.on_save)
+        self.input_value.textChanged.connect(self.value_changed)
+        # self.txt_description.textChanged.connect(self.desc_changed)
+        self.input_value.setReadOnly(True)
+
+    # Debugging
+    def value_changed(self, value):
+        try:
+            self.value = int(value)
+            self.btn_save.setEnabled(True)
+        except ValueError as err:
+            print(err)
+            self.btn_save.setEnabled(False)
+
+    def desc_changed(self):
+        self.btn_save.setEnabled(True)
+
 
     """ 
     Это, наверное, самый костыльный костыль из костылей, что я делал 
@@ -35,65 +52,30 @@ class ResultWidget(QtWidgets.QWidget):
         custom_desc_list = load(path=self.path)["desc_list"]
         # Проверка на значение None
         if custom_desc_list:
-            print(custom_desc_list)
             custom_desc_list = [x[1] for x in custom_desc_list if x[0] == self.row_id]
             # Если нашли значения для выбранного алгоритма
             if custom_desc_list:
                 custom_desc_list = custom_desc_list[0]
-                print("custom_desc_list", custom_desc_list)
-                print("self.value:", self.value)
-                print(str(self.value) in custom_desc_list)
                 # Если для значения установлено уникальное описание
                 if str(self.value) in custom_desc_list:
-                    self.txt_description.setText(custom_desc_list[str(self.value)].encode('utf-8').decode('unicode-escape'))
+                    txt = custom_desc_list[str(self.value)]
+                    self.txt_description.setText(txt)
                 # В противном случае ищем описания заданные по умолчанию для данного значения в БАЗЕ
                 else:
-                    self.cur.execute(
-                        """
-                        SELECT desc_list FROM descriptions WHERE id=?
-                        """, (self.row_id, )
-                    )
-                    values = self.cur.fetchall()
-                    # Если есть значения, заданные в базе
-                    if values:
-                        values = json.loads(values[0][0])
-                        # Если в базе есть описание для данного значения
-                        if str(self.value) in values:
-                            self.txt_description.setText(values[str(self.value)])
-                        # Если в базе нет описания для полученного значения
-                        else:
-                            self.txt_description.setText("Значение по умолчанию не задано")
-                    # Если в базе нет значений, т.е fetchall() вернул []
-                    else:
-                        self.txt_description.setText("Значение по умолчанию не задано")
+                    self.not_found_case()
             # Если НЕ нашли значения для выбранного алгоритма
             else:
-                self.cur.execute(
-                        """
-                        SELECT desc_list FROM descriptions WHERE id=?
-                        """, (self.row_id, )
-                    )
-                values = self.cur.fetchall()
-                # Если есть значения, заданные в базе
-                print("VALUES:", values)
-                if values:
-                    values = json.loads(values[0][0])
-                    # Если в базе есть описание для данного значения
-                    if str(self.value) in values:
-                        self.txt_description.setText(values[str(self.value)])
-                    # Если в базе нет описания для полученного значения
-                    else:
-                        self.txt_description.setText("Значение по умолчанию не задано")
-                # Если в базе нет значений, т.е fetchall() вернул []
-                else:
-                    self.txt_description.setText("Значение по умолчанию не задано")
+                self.not_found_case()
         # Проверка на None не пройдена
         else:
+            self.not_found_case()
+
+    def not_found_case(self):
             self.cur.execute(
-                        """
-                        SELECT desc_list FROM descriptions WHERE id=?
-                        """, (self.row_id, )
-                    )
+                            """
+                            SELECT desc_list FROM descriptions WHERE id=?
+                            """, (self.row_id, )
+                        )
             values = self.cur.fetchall()
             # Если есть значения, заданные в базе
             if values:
@@ -117,7 +99,45 @@ class ResultWidget(QtWidgets.QWidget):
 
 
     def on_save(self):
-        pass
+        self.btn_save.setEnabled(False)
+        usr_desc = self.txt_description.toPlainText()
+        descriptions = load(self.path)["desc_list"]
+        # Проверка на None
+        if descriptions:
+            dictionary = [(x[1], ind) for ind, x in enumerate(descriptions) if x[0] == self.row_id]
+            # Если нашли массив значений для выбранного алгоритма
+            if dictionary:
+                dictionary = dictionary[0]
+                descriptions[dictionary[1]][1][str(self.value)] = usr_desc
+                self.save_desc(descriptions)
+            # Если не нашли массив значений для выбранного алгоритма    
+            else:
+                descriptions.append([self.row_id, {self.value: usr_desc}])
+                self.save_desc(descriptions)
+        else:   
+            self.save_desc([[self.row_id, {self.value: usr_desc}]])
+            
+            
+
+    
+    def save_desc(self, desc_list):
+        data = load(self.path)
+        save(path=self.path,
+
+            surname=data["surname"],
+            name=data["name"],
+            middle_name=data["middle_name"],
+            bonus_list=data["bonus_list"],
+            date_of_birth=data["date_of_birth"],
+            time_of_birth=data["time_of_birth"],
+            moon_birth=data["moon_birth"],
+            delete=data["delete"],
+            dictionary=data["dictionary"],
+            desc_list=desc_list
+        )
+        
+
+
 
 
     def setupUi(self):
