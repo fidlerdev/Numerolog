@@ -5,7 +5,6 @@ from os import sep, getcwd, path
 from load_data import load_settings
 from save_data import save_settings
 from dialog_windows import CloseDialog
-from dict_window import DictWidget
 from desc_window import DescriptionWidget
 import sqlite3
 
@@ -15,6 +14,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.closing = False
         self.data = load_settings()
         self.setupUi(self)
+        self.load_alphabs()
         self.btn_save.clicked.connect(lambda: save_settings(
                     save_chosen_working_dir=self.check_save_wd.isChecked(),
                     chosen_working_dir_path=self.data["chosen_working_dir_path"], #Здесь не меняем ничего
@@ -29,6 +29,19 @@ class SettingsWidget(QtWidgets.QWidget):
         self.listWidget_dicts.itemClicked.connect(self.itemClicked)
         self.btn_new_dict.clicked.connect(self.new_dict_clicked)
         self.btn_descriptions.clicked.connect(self.open_descriptions)
+
+    def load_alphabs(self):
+        for alphab in self.data["dictionary_list"]:
+            string = ""
+            if self.data["dictionary_list"][alphab][-1]:
+                string = "\t———\tнастроен"
+            else:
+                string = "\t———\tНЕ настроен"
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, alphab)
+            item.setText(alphab + string)
+            self.listWidget_dicts.addItem(item)
+        # self.listWidget_dicts.addItems(self.data["dictionary_list"])
 
     def open_descriptions(self):
         # Проверка на наличие базы данных с описаниями
@@ -75,9 +88,9 @@ class SettingsWidget(QtWidgets.QWidget):
     def itemClicked(self, item):
         self.selected_row = self.listWidget_dicts.row(item)
         self.btn_delete.setEnabled(True)
-        name = item.text()
+        name = item.data(QtCore.Qt.UserRole)
         self.input_alpha_name.setText(name)
-        alpha = self.data["dictionary_list"][name]
+        alpha = self.data["dictionary_list"][name][:-1]
 
         count = 0
 
@@ -89,7 +102,7 @@ class SettingsWidget(QtWidgets.QWidget):
         print(alphabet)
         for index_of_group, group in enumerate(alpha):
             for index_of_el, el in enumerate(group):
-                alphabet = alphabet.replace(str(index_of_group + index_of_el * 9) + ", ", el, 1)
+                alphabet = alphabet.replace(str(index_of_group + index_of_el * 9) + ", ", el[0], 1)
                 print(alphabet)
                 print(str(index_of_group + index_of_el * 9))
 
@@ -149,6 +162,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.closing = True
         if result == QtWidgets.QMessageBox.Accepted:
             self.close()
+        else: self.closing = False
 
 
 
@@ -204,6 +218,8 @@ class SettingsWidget(QtWidgets.QWidget):
         self.verticalLayout_4.addWidget(self.label)
         self.listWidget_dicts = QtWidgets.QListWidget(self.groupBox)
         self.verticalLayout_4.addWidget(self.listWidget_dicts)
+        self.label_hint_alpha = QtWidgets.QLabel(self.groupBox)
+        self.verticalLayout_4.addWidget(self.label_hint_alpha)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, 10, -1, -1)
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -328,12 +344,8 @@ class SettingsWidget(QtWidgets.QWidget):
         self.verticalLayout.addItem(spacerItem3)
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
-
-
-
         # Подгружаем пользовательские значения в настройки
         self.check_save_wd.setChecked(self.data["save_chosen_working_dir"])
-        self.listWidget_dicts.addItems(self.data["dictionary_list"])
         self.fontComboBox.setCurrentFont(QtGui.QFont(self.data["font"]))
         self.spinBox_fontSize.setValue(self.data["font_size"])
         self.comboBox_icons.setCurrentIndex(self.data["icons_set"] - 1)
@@ -361,6 +373,9 @@ class SettingsWidget(QtWidgets.QWidget):
         self.btn_save_dict.setText(_translate("self", "Сохранить Алфавит"))
         self.groupBox_4.setTitle(_translate("self", "Алфавит"))
         self.btn_new_dict.setText(_translate("self", "Новый Алфавит"))
+        hint = "Если алфавит не был настроен, алгоритмы 11-13\nне будут доступны"
+
+        self.label_hint_alpha.setText(_translate("self", hint))
         
 
 

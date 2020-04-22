@@ -174,6 +174,8 @@ class UserWidget(QtWidgets.QWidget):
             self.closing = True
             if result == QtWidgets.QMessageBox.Accepted:
                 self.close()
+            else: self.closing = False
+
 
     def on_close(self):
         dialog = CloseDialog(self)
