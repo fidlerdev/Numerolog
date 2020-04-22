@@ -2,7 +2,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from load_data import load
+from load_data import load, load_settings
 from load_resources import get_icons
 from result_widget import ResultWidget
 
@@ -11,17 +11,30 @@ class CalculateWidget(QtWidgets.QWidget):
         QtWidgets.QWidget.__init__(self, parent)
         self.path = path
         self.icons = get_icons()
+        self.headers = [
+            "День Рождения",
+            "Число жизненного пути",
+            "Здоровье по Зюрняевой",
+            "Ментальное число",
+            "Финансы по Зюрняевой",
+            "Таланты",
+            "Профессии",
+            "Число судьбы",
+            "Число души",
+            "Число Индивидуальности"
+        ]
         self.setupUi()
         self.load_data(path=path)
         
         self.btn_close.clicked.connect(self.close)
 
         self.list_calculate.itemClicked.connect(self.on_item_clicked)
-        self.btn_calculate.clicked.connect(self.calculate)
+        self.btn_calculate.clicked.connect(self.on_result_create)
 
 
     def load_data(self, path):
         self.data = load(path)
+        self.settings = load_settings()
 
         self.label_surname.setText("Фамилия:\t\t\t" + self.data["surname"])
         self.label_name.setText("Имя:\t\t\t\t" + self.data["name"])
@@ -39,65 +52,136 @@ class CalculateWidget(QtWidgets.QWidget):
         self.btn_calculate.setEnabled(True)
         self.btn_print.setEnabled(True)
 
-    def calculate(self):
-        row = self.list_calculate.row(self.selected_item)
-        # Карта Рождения
-        if row == 0:
-            self.header_text = "Карта Рождения"
-            self.value = 0
+    def on_result_create(self):
+        # algo_data[0] -> номер алгоритма
+        # algo_data[1] -> порядковый номер [0...1]
+        algo_data = self.selected_item.data(QtCore.Qt.UserRole)
+        header = self.headers[algo_data[1]]
 
-        # Квадрат Пифагора
-        elif row == 1:
-            self.header_text = "Квадрат Пифагора"
-            self.value = 0
-
-        # Здоровье по Зюрняевой
-        elif row == 2:
-            self.header_text = "Здоровье по Зюрняевой"
-            self.value = self.data["date_of_birth"][0]
-
-        # Финансы по зюрняевой
-        elif row == 3:
-            self.header_text = "Финансы по Зюрняевой"
-            self.value = self.data["date_of_birth"][1] // 10 + self.data["date_of_birth"][1] % 10
-        
-        # Дата рождения по Розе Петровне
-        elif row == 4:
-            self.header_text = "Дата Рождения по Розе Петровне"
-            self.value = 0
-        
-        # Числа Ф. И. О.
-        elif row == 5:
-            self.header_text = "Числа Ф. И. О."
-            self.value = 0
-
-        # Карта инклюзий
-        elif row == 6:
-            self.header_text = "Карта инклюзий"
-            self.value = 0
-        
-        # Число кармического долга
-        elif row == 7:
-            self.header_text = "Число кармического долга"
-            self.value = 0
-
-        # Мандала по Зюрняевой
-        elif row == 8:
-            self.header_text = "Мандала по Зюрняевой"
-            self.value = 0
-
-        # Коды по Кабарухиной
-        elif row == 9:
-            self.header_text = "Коды по Кабарухиной"
-            self.value = 0
+        if algo_data[0] in range(10, 13): # Если выбран алгоритм с 11 по 13
+                if not self.settings["dictionary_list"][self.data["dictionary"]][-1]: # Если не были определены гласные и согласные
+                    QtWidgets.QMessageBox.warning(
+                        "Предупреждение",
+                        "Гласные и согласные буквы не были\n\
+                        установлены для данного алфавита.",
+                        defaultButton=QtWidgets.QMessageBox.Ok
+                        )
+                    return # Выходим из метода self.on_result_create
+        # Если все значения установлены
+        value = self.calculate(algo_data[0])
 
         self.result_widget = ResultWidget(
             path=self.path,
-            header_text=self.header_text,
-            value=self.value,
-            row_id=row
+            header_text=header,
+            value=value,
+            row_id=algo_data[0]
             )
         self.result_widget.show()
+
+    def calculate(self, algo):
+        if algo in range(13):
+            return eval("self.algo_{}()".format(algo))
+        else: return -1
+
+    def algo_0(self):
+        return self.data["date_of_birth"][0]
+
+    def algo_1(self):
+        day = self.data["date_of_birth"][0]
+        month = self.data["date_of_birth"][1]
+        year = self.data["date_of_birth"][2]
+        sub_total = 0
+
+        while day:
+            sub_total += day % 10
+            day //= 10
+
+        while month:
+            sub_total += month % 10
+            month //= 10
+
+        while year:
+            sub_total += year % 10
+            year //= 10
+        
+        if (sub_total == 11) or (sub_total == 22) or \
+            (sub_total == 33) or (sub_total == 44):
+            return sub_total
+        else:
+            total = 0
+            while sub_total:
+                total += sub_total % 10
+                sub_total //= 10
+
+    def algo_2(self):
+        pass
+
+    def algo_3(self):
+        pass
+
+    def algo_4(self):
+        return self.algo_0()
+
+    def algo_5(self):
+        year = self.data("date_of_birth")[2]
+        year = str(year).strip("0")
+        return int(year[0]) + int(year[-1]) # sum(first and (last!=0))
+
+    def algo_6(self):
+        month = self.data["date_of_birth"][1]
+        total = 0
+        while month:
+            total += month % 10
+            month // 10
+        return total
+
+    def algo_7(self):
+        day = self.data["date_of_birth"][0]
+        total = 0
+        while day:
+            total += day % 10
+            day // 10
+            if total > 9: 
+                day = total
+                total = 0
+        return total
+
+    def algo_8(self):
+        return self.algo_7
+
+    def algo_9(self):
+        pass
+
+    def algo_10(self):
+        return self.algo_10__12(algo=10)
+
+    def algo_11(self):
+        pass
+
+    def algo_12(self):
+        pass
+
+    def algo_10__12(self, algo):
+        al_name = self.data["dictionary"]
+        alphabet = self.settings["dictionary_list"][al_name][:-1] # Данные в формате tuple(Символ unicode, 1/0) + искл. посл. знач.
+        surname = self.data["surname"]                       # 1 -> гласная буква
+        name = self.data["name"]                             # 0 -> согласная буква
+        middle_name = self.data["middle_name"]
+        pers_data = [surname, name, middle_name] # Записываем Фам, Им, Отч
+        if algo == 10:
+            val_surname = 0
+            val_name = 0
+            val_middle_name = 0
+            # Производим вычисление для Ф, И и О
+            for word in pers_data:
+                # находим значение для каждого символа слова
+                for letter in word:
+                    
+        elif (algo == 11) or (algo == 12):
+            alphabet = []
+
+
+
         
     def setupUi(self):
         self.resize(361, 607)
@@ -127,35 +211,10 @@ class CalculateWidget(QtWidgets.QWidget):
         self.list_calculate.setProperty("isWrapping", False)
         self.list_calculate.setResizeMode(QtWidgets.QListView.Fixed)
 
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
-
-        item = QtWidgets.QListWidgetItem()
-        self.list_calculate.addItem(item)
+        # Создаем 10 ячеек в таблице
+        for _ in range(10):
+            item = QtWidgets.QListWidgetItem()
+            self.list_calculate.addItem(item)
 
         self.gridLayout.addWidget(self.list_calculate, 3, 1, 1, 1)
         self.groupbox_date = QtWidgets.QGroupBox(self)
@@ -196,26 +255,17 @@ class CalculateWidget(QtWidgets.QWidget):
         self.btn_close.setText("Закрыть")
         __sortingEnabled = self.list_calculate.isSortingEnabled()
         self.list_calculate.setSortingEnabled(False)
-        item = self.list_calculate.item(0)
-        item.setText("1. Карта Рождения")
-        item = self.list_calculate.item(1)
-        item.setText("2. Квадрат Пифагора")
-        item = self.list_calculate.item(2)
-        item.setText("3. Здоровье по Зюрняевой")
-        item = self.list_calculate.item(3)
-        item.setText("4. Финансы по Зюрняевой")
-        item = self.list_calculate.item(4)
-        item.setText("5. Дата рождения по Розе Петровне")
-        item = self.list_calculate.item(5)
-        item.setText("6. Числа Ф. И. О.")
-        item = self.list_calculate.item(6)
-        item.setText("7. Карта инклюзий")
-        item = self.list_calculate.item(7)
-        item.setText("8. Число кармического долга")
-        item = self.list_calculate.item(8)
-        item.setText("9. Мандала по Зюрняевой")
-        item = self.list_calculate.item(9)
-        item.setText("10. Коды по Кабарухиной")
+        # Редактируем ячейки списка
+        values = [0, 1, 4, 5, 6, 7, 8, 10, 11, 12]
+        for num in zip(values, list(range(10))):
+            item = self.list_calculate.item(num[1])
+            # item.data == (Номер алгоритма, порядковый номер в self.headers)
+            item.setData(QtCore.Qt.UserRole, (num[0], num[1]))
+            item.setText("{id}. {name}".format(
+                id=num[0] + 1,
+                name=self.headers[num[1]]
+                ))
+        
         self.list_calculate.setSortingEnabled(__sortingEnabled)
         self.groupbox_date.setTitle("Даты")
         self.label_date_of_birth.setText("Дата рождения")

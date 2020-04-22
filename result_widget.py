@@ -42,12 +42,6 @@ class ResultWidget(QtWidgets.QWidget):
     def desc_changed(self):
         self.btn_save.setEnabled(True)
 
-
-    """ 
-    Это, наверное, самый костыльный костыль из костылей, что я делал 
-    Нужно хотя бы оптимизировать это д***мо и подогнать к DIY
-    """
-
     def load_desc(self):
         custom_desc_list = load(path=self.path)["desc_list"]
         # Проверка на значение None

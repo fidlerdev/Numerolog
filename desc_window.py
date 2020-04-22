@@ -220,44 +220,44 @@ class DescriptionWidget(QtWidgets.QWidget):
 
     def retranslateUi(self):
         # Добавляем расчёты:
-        calc = QtWidgets.QListWidgetItem("1. Карта Рождения")
+        calc = QtWidgets.QListWidgetItem("1. День Рождения")
         calc.setData(QtCore.Qt.UserRole, 0)
         self.list_widget.addItem(calc)
         
-        calc = QtWidgets.QListWidgetItem("2. Квадрат Пифагора")
+        calc = QtWidgets.QListWidgetItem("2. Число Жизненного Пути")
         calc.setData(QtCore.Qt.UserRole, 1)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("3. Здоровье по Зюрняевой")
-        calc.setData(QtCore.Qt.UserRole, 2)
-        self.list_widget.addItem(calc)
-
-        calc = QtWidgets.QListWidgetItem("4. Финансы по Зюрняевой")
-        calc.setData(QtCore.Qt.UserRole, 3)
-        self.list_widget.addItem(calc)
-
-        calc = QtWidgets.QListWidgetItem("5. Дата рождения по Розе Петровне")
+        calc = QtWidgets.QListWidgetItem("5. Здоровье по Зюрняевой")
         calc.setData(QtCore.Qt.UserRole, 4)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("6. Числа Ф. И. О.")
+        calc = QtWidgets.QListWidgetItem("6. Ментальное число")
         calc.setData(QtCore.Qt.UserRole, 5)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("7. Карта инклюзий")
+        calc = QtWidgets.QListWidgetItem("7. Финансы по Зюрняевой")
         calc.setData(QtCore.Qt.UserRole, 6)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("8. Число кармического долга")
+        calc = QtWidgets.QListWidgetItem("8. Таланты")
         calc.setData(QtCore.Qt.UserRole, 7)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("9. Мандала по Зюрняевой")
+        calc = QtWidgets.QListWidgetItem("9. Профессии")
         calc.setData(QtCore.Qt.UserRole, 8)
         self.list_widget.addItem(calc)
 
-        calc = QtWidgets.QListWidgetItem("10. Коды по Кабарухиной")
-        calc.setData(QtCore.Qt.UserRole, 9)
+        calc = QtWidgets.QListWidgetItem("11. Число судьбы")
+        calc.setData(QtCore.Qt.UserRole, 10)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("12. Число души")
+        calc.setData(QtCore.Qt.UserRole, 11)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("13. Число Индивидуальности")
+        calc.setData(QtCore.Qt.UserRole, 12)
         self.list_widget.addItem(calc)
 
         self.label_1.setText("Выберите алгоритм:")
