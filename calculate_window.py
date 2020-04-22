@@ -156,10 +156,10 @@ class CalculateWidget(QtWidgets.QWidget):
         return self.algo_10__12(algo=10)
 
     def algo_11(self):
-        pass
+        return self.algo_10__12(algo=11)
 
     def algo_12(self):
-        pass
+        return self.algo_10__12(algo=12)
 
     def algo_10__12(self, algo):
         al_name = self.data["dictionary"]
@@ -168,17 +168,101 @@ class CalculateWidget(QtWidgets.QWidget):
         name = self.data["name"]                             # 0 -> согласная буква
         middle_name = self.data["middle_name"]
         pers_data = [surname, name, middle_name] # Записываем Фам, Им, Отч
+        values = [0, 0, 0] # Значения сумм для Фам, Им и Отч
         if algo == 10:
-            val_surname = 0
-            val_name = 0
-            val_middle_name = 0
             # Производим вычисление для Ф, И и О
-            for word in pers_data:
+            for word, ind_val in zip(pers_data, range(len(values))):
                 # находим значение для каждого символа слова
-                for letter in word:
-                    
+                # если слово не пустая строка (Оптимизация)
+                if word:
+                    for letter in word:
+                        # Проходимся по всему алфавиту, учитывая индекс+1=Вес символа
+                        for ind, arr in enumerate(alphabet):
+                            val = ind + 1
+                            # Проходимся по списку символов с одинаковым весом
+                            for alpha_letter in arr:
+                                if alpha_letter[0].lower() == letter.lower():
+                                    values[ind_val] += val
+                else: continue # Если Ф или И или О не было введено -> пропускаем
+
+            # Складываем значения имени, фамилии и отчества до однознач. числа
+            for ind, val in enumerate(values):
+                total = 0
+                value = val
+                while True:
+                    while value:
+                        total += value % 10
+                        value //= 10
+                    if total < 10:
+                        break
+                    value = total
+                values[ind] = total
+
+            value = sum(values) # суммируем все значения 
+            if value > 9 and value != 11 and value != 22:
+                total = 0
+                while True:
+                    while value:
+                        total += value % 10
+                        value //= 10
+                    if total < 10 or total in [11, 22]:
+                        break
+                    value = total
+            else:
+                total = value
+
+            return total
+
+                                
         elif (algo == 11) or (algo == 12):
-            alphabet = []
+            alpha_type = None # 1 -> гласные 0 -> согласные
+            if algo == 11: alpha_type = 1
+            if algo == 12: alpha_type = 0
+
+            values = [0, 0, 0] # Значения сумм для Фам, Им и Отч
+            # Производим вычисление для Ф, И и О
+
+            for word, ind_val in zip(pers_data, range(len(values))):
+                # находим значение для каждого символа слова
+                # если слово не пустая строка (Оптимизация)
+                if word:
+                    for letter in word:
+                        # Проходимся по всему алфавиту, учитывая индекс+1=Вес символа
+                        for ind, arr in enumerate(alphabet):
+                            val = ind + 1
+                            # Проходимся по списку символов с одинаковым весом
+                            for alpha_letter in arr:
+                                if alpha_letter[0].lower() == letter.lower() and alpha_letter[1] == alpha_type:
+                                    values[ind_val] += val
+                else: continue # Если Ф или И или О не было введено -> пропускаем
+
+            # Складываем значения имени, фамилии и отчества до однознач. числа
+            for ind, val in enumerate(values):
+                total = 0
+                value = val
+                while True:
+                    while value:
+                        total += value % 10
+                        value //= 10
+                    if total < 10:
+                        break
+                    value = total
+                values[ind] = total
+
+            value = sum(values) # суммируем все значения 
+            if value > 9 and value != 11 and value != 22:
+                total = 0
+                while True:
+                    while value:
+                        total += value % 10
+                        value //= 10
+                    if total < 10 or total in [11, 22]:
+                        break
+                    value = total
+            else:
+                total = value
+
+            return total
 
 
 
