@@ -36,20 +36,6 @@ def save(path, **kwargs):
         json.dump(data, file, indent=4)
     return data
 
-
-    data = {
-        "surname":          data["surname"],
-        "name":             data["name"],
-        "middle_name":      data["middle_name"],
-        "bonus_list":       data["bonus_list"],
-        "date_of_birth":    data["date_of_birth"],
-        "time_of_birth":    data["time_of_birth"],
-        "moon_birth":       data["moon_birth"],
-        "delete":           data["delete"],
-        "dictionary":       data["dictionary"],
-        "desc_list":        data["desc_list"]
-    }
-
 def save_settings(create_new=False, **kwargs):
     """
         **kwargs:
