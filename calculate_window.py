@@ -90,28 +90,24 @@ class CalculateWidget(QtWidgets.QWidget):
         day = self.data["date_of_birth"][0]
         month = self.data["date_of_birth"][1]
         year = self.data["date_of_birth"][2]
-        sub_total = 0
-
-        while day:
-            sub_total += day % 10
-            day //= 10
-
-        while month:
-            sub_total += month % 10
-            month //= 10
-
-        while year:
-            sub_total += year % 10
-            year //= 10
         
-        if (sub_total == 11) or (sub_total == 22) or \
-            (sub_total == 33) or (sub_total == 44):
-            return sub_total
-        else:
+        value = int("{}{}{}".format(day, month, year).strip("0"))
+        print(value)
+        total = 0
+        while True:
+            while value:
+                total += value % 10
+                value //= 10
+            print(total)
+            if total < 9 or total == 11 or total == 22 or \
+                total == 33 or total == 44:
+                break
+            value = total
             total = 0
-            while sub_total:
-                total += sub_total % 10
-                sub_total //= 10
+
+        return total
+
+
 
     def algo_2(self):
         pass
@@ -123,7 +119,7 @@ class CalculateWidget(QtWidgets.QWidget):
         return self.algo_0()
 
     def algo_5(self):
-        year = self.data("date_of_birth")[2]
+        year = self.data["date_of_birth"][2]
         year = str(year).strip("0")
         return int(year[0]) + int(year[-1]) # sum(first and (last!=0))
 
@@ -132,22 +128,24 @@ class CalculateWidget(QtWidgets.QWidget):
         total = 0
         while month:
             total += month % 10
-            month // 10
+            month //= 10
         return total
 
     def algo_7(self):
         day = self.data["date_of_birth"][0]
         total = 0
-        while day:
-            total += day % 10
-            day // 10
-            if total > 9: 
-                day = total
-                total = 0
+        while True:
+            while day:
+                total += day % 10
+                day //= 10
+            if total < 9: 
+                break
+            day = total
+            total = 0
         return total
 
     def algo_8(self):
-        return self.algo_7
+        return self.algo_7()
 
     def algo_9(self):
         pass
@@ -169,100 +167,57 @@ class CalculateWidget(QtWidgets.QWidget):
         middle_name = self.data["middle_name"]
         pers_data = [surname, name, middle_name] # Записываем Фам, Им, Отч
         values = [0, 0, 0] # Значения сумм для Фам, Им и Отч
-        if algo == 10:
-            # Производим вычисление для Ф, И и О
-            for word, ind_val in zip(pers_data, range(len(values))):
-                # находим значение для каждого символа слова
-                # если слово не пустая строка (Оптимизация)
-                if word:
-                    for letter in word:
-                        # Проходимся по всему алфавиту, учитывая индекс+1=Вес символа
-                        for ind, arr in enumerate(alphabet):
-                            val = ind + 1
-                            # Проходимся по списку символов с одинаковым весом
-                            for alpha_letter in arr:
-                                if alpha_letter[0].lower() == letter.lower():
+        alpha_type = None # 1 -> гласные 0 -> согласные
+        if algo == 11: alpha_type = 1
+        if algo == 12: alpha_type = 0
+        # Производим вычисление для Ф, И и О
+        for word, ind_val in zip(pers_data, range(len(values))):
+            # находим значение для каждого символа слова
+            # если слово не пустая строка (Оптимизация)
+            if word:
+                for letter in word:
+                    # Проходимся по всему алфавиту, учитывая индекс+1=Вес символа
+                    for ind, arr in enumerate(alphabet):
+                        val = ind + 1
+                        # Проходимся по списку символов с одинаковым весом
+                        for alpha_letter in arr:
+                            if alpha_letter[0].lower() == letter.lower():
+                                if (algo == 11) or (algo == 12):
+                                    if alpha_letter[1] == alpha_type:
+                                        values[ind_val] += val
+                                else:
                                     values[ind_val] += val
-                else: continue # Если Ф или И или О не было введено -> пропускаем
+            else: continue # Если Ф или И или О не было введено -> пропускаем
 
-            # Складываем значения имени, фамилии и отчества до однознач. числа
-            for ind, val in enumerate(values):
+        # Складываем значения имени, фамилии и отчества до однознач. числа
+        for ind, val in enumerate(values):
+            total = 0
+            value = val
+            while True:
+                while value:
+                    total += value % 10
+                    value //= 10
+                if total < 10:
+                    break
+                value = total
                 total = 0
-                value = val
-                while True:
-                    while value:
-                        total += value % 10
-                        value //= 10
-                    if total < 10:
-                        break
-                    value = total
-                values[ind] = total
+            values[ind] = total
 
-            value = sum(values) # суммируем все значения 
-            if value > 9 and value != 11 and value != 22:
+        value = sum(values) # суммируем все значения 
+        if value > 9 and value != 11 and value != 22:
+            total = 0
+            while True:
+                while value:
+                    total += value % 10
+                    value //= 10
+                if total < 10 or total in [11, 22]:
+                    break
+                value = total
                 total = 0
-                while True:
-                    while value:
-                        total += value % 10
-                        value //= 10
-                    if total < 10 or total in [11, 22]:
-                        break
-                    value = total
-            else:
-                total = value
+        else:
+            total = value
 
-            return total
-
-                                
-        elif (algo == 11) or (algo == 12):
-            alpha_type = None # 1 -> гласные 0 -> согласные
-            if algo == 11: alpha_type = 1
-            if algo == 12: alpha_type = 0
-
-            values = [0, 0, 0] # Значения сумм для Фам, Им и Отч
-            # Производим вычисление для Ф, И и О
-
-            for word, ind_val in zip(pers_data, range(len(values))):
-                # находим значение для каждого символа слова
-                # если слово не пустая строка (Оптимизация)
-                if word:
-                    for letter in word:
-                        # Проходимся по всему алфавиту, учитывая индекс+1=Вес символа
-                        for ind, arr in enumerate(alphabet):
-                            val = ind + 1
-                            # Проходимся по списку символов с одинаковым весом
-                            for alpha_letter in arr:
-                                if alpha_letter[0].lower() == letter.lower() and alpha_letter[1] == alpha_type:
-                                    values[ind_val] += val
-                else: continue # Если Ф или И или О не было введено -> пропускаем
-
-            # Складываем значения имени, фамилии и отчества до однознач. числа
-            for ind, val in enumerate(values):
-                total = 0
-                value = val
-                while True:
-                    while value:
-                        total += value % 10
-                        value //= 10
-                    if total < 10:
-                        break
-                    value = total
-                values[ind] = total
-
-            value = sum(values) # суммируем все значения 
-            if value > 9 and value != 11 and value != 22:
-                total = 0
-                while True:
-                    while value:
-                        total += value % 10
-                        value //= 10
-                    if total < 10 or total in [11, 22]:
-                        break
-                    value = total
-            else:
-                total = value
-
-            return total
+        return total
 
 
 
