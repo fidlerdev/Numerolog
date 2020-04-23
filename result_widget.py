@@ -35,7 +35,7 @@ class ResultWidget(QtWidgets.QWidget):
 
     def print_out(self):
         self.txt_print_out = QtWidgets.QTextEdit()
-        print_out_text = "Наименование:\t{}\nЗначение:\t{}\nОписание:\t{}".format(self.input_value.text(),
+        print_out_text = "Наименование: {}\nЗначение: {}\n\nОписание:\n{}".format(self.input_nametag.text(),
                                                                                 self.value,
                                                                                 self.txt_description.toPlainText())
         self.txt_print_out.setText(print_out_text)
