@@ -1,23 +1,41 @@
 from PyQt5 import QtWidgets, QtCore
 from load_data import load_settings
 from dialog_windows import CloseDialog
+from save_data import save_settings
 
 class AlphaWindow(QtWidgets.QWidget):
+    saved = QtCore.pyqtSignal(list)
 
     def __init__(self, alphabet, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
         self.alphabet = load_settings()["dictionary_list"][alphabet]
         self.closing = False
-        print(self.alphabet)
+        # print(self.alphabet)
         self.setupUi()
         self.load_letters()
         self.btn_close.clicked.connect(self.quit_action)
         self.btn_save.clicked.connect(self.save)
 
     def save(self):
-        pass
+        alphabet = [[], [], [], [], [], [], [], [], []]
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            letter_type = None
+            if item.radio_consonant.isChecked():
+                letter_type = 0
+            else:
+                letter_type = 1
+            alphabet[index % 9].append([item.letter, letter_type])
+        alphabet.append(True)
+        
+        # print(alphabet)
+        self.saved.emit(alphabet)
+        self.btn_save.setEnabled(False)
+        self.btn_save.repaint()
 
     def on_close(self):
+        if not self.btn_save.isEnabled():
+            return QtWidgets.QMessageBox.Accepted
         dialog = CloseDialog(self)
         # Переопределяем надпись в модальном окне
         dialog.label.setText("Вы действительно хотите закрыть окно?\nВсе несохраненные данные будут утеряны")
@@ -25,6 +43,10 @@ class AlphaWindow(QtWidgets.QWidget):
         return dialog.exec()
 
     def closeEvent(self, event):
+        if not self.btn_save.isEnabled():
+            event.accept()
+            return
+
         if not self.closing:
             result = self.on_close()
             if result == QtWidgets.QMessageBox.Accepted:
@@ -35,6 +57,9 @@ class AlphaWindow(QtWidgets.QWidget):
             event.accept()
 
     def quit_action(self):
+        if not self.btn_save.isEnabled():
+            self.close()
+            return
         result = self.on_close()
         self.closing = True
         if result == QtWidgets.QMessageBox.Accepted:
@@ -84,12 +109,19 @@ class AlphaWindow(QtWidgets.QWidget):
 class AlphaListWidgetItem(QtWidgets.QListWidgetItem):
     def __init__(self, parent, letter, val):
         QtWidgets.QListWidgetItem.__init__(self, parent=parent)
+        self.parent = parent
         self.letter = letter
         self.setupUi()
         self.set_letter_type(val)
         parent.addItem(self)
         parent.setItemWidget(self, self.widget)
         self.setData(QtCore.Qt.UserRole, val)
+        self.radio_consonant.clicked.connect(self.on_value_change)
+        self.radio_vowel.clicked.connect(self.on_value_change)
+
+    def on_value_change(self, checked):
+        self.parent.parentWidget().btn_save.setEnabled(True)
+        self.parent.parentWidget().btn_save.repaint()
 
     def set_letter_type(self, val):
         if val: self.radio_vowel.setChecked(True)

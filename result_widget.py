@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets, QtPrintSupport
 import sqlite3, json
 from load_data import load
+from load_resources import get_icons
 from save_data import save
 
 class ResultWidget(QtWidgets.QWidget):
 
     def __init__(self, path, header_text, value, row_id, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
+        self.icons = get_icons()
         self.setupUi()
         self.value = value
         self.header_text = header_text
@@ -27,8 +29,25 @@ class ResultWidget(QtWidgets.QWidget):
         self.btn_close.clicked.connect(self.on_close)
         self.btn_save.clicked.connect(self.on_save)
         self.input_value.textChanged.connect(self.value_changed)
-        # self.txt_description.textChanged.connect(self.desc_changed)
+        self.txt_description.textChanged.connect(self.desc_changed)
+        self.btn_print.clicked.connect(self.print_out)
         self.input_value.setReadOnly(True)
+
+    def print_out(self):
+        self.txt_print_out = QtWidgets.QTextEdit()
+        print_out_text = "Наименование:\t{}\nЗначение:\t{}\nОписание:\t{}".format(self.input_value.text(),
+                                                                                self.value,
+                                                                                self.txt_description.toPlainText())
+        self.txt_print_out.setText(print_out_text)
+        printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+        previewDialog = QtPrintSupport.QPrintPreviewDialog(printer, self)
+        previewDialog.setWindowTitle("Предпросмотр")
+        previewDialog.paintRequested.connect(self.printPreview)
+        previewDialog.exec()
+
+    def printPreview(self, printer):
+        self.txt_print_out.print(printer)
+
 
     # Debugging
     def value_changed(self, value):
@@ -41,6 +60,7 @@ class ResultWidget(QtWidgets.QWidget):
 
     def desc_changed(self):
         self.btn_save.setEnabled(True)
+        self.btn_save.repaint()
 
     def load_desc(self):
         custom_desc_list = load(path=self.path)["desc_list"]
@@ -94,6 +114,7 @@ class ResultWidget(QtWidgets.QWidget):
 
     def on_save(self):
         self.btn_save.setEnabled(False)
+        self.btn_save.repaint()
         usr_desc = self.txt_description.toPlainText()
         descriptions = load(self.path)["desc_list"]
         # Проверка на None
@@ -174,6 +195,9 @@ class ResultWidget(QtWidgets.QWidget):
 
         self.btn_save = QtWidgets.QPushButton(self)
         self.horizontalLayout.addWidget(self.btn_save)
+        self.btn_print = QtWidgets.QPushButton(self)
+        self.btn_print.setIcon(self.icons["print"])
+        self.horizontalLayout.addWidget(self.btn_print)
         self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
         self.btn_close = QtWidgets.QPushButton(self)
         self.horizontalLayout.addWidget(self.btn_close)

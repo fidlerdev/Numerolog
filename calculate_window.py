@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic, QtPrintSupport
 from load_data import load, load_settings
 from load_resources import get_icons
 from result_widget import ResultWidget
+import sqlite3
+import json
 
 class CalculateWidget(QtWidgets.QWidget):
     def __init__(self, parent, path):
@@ -50,7 +52,26 @@ class CalculateWidget(QtWidgets.QWidget):
     def on_item_clicked(self, item):
         self.selected_item = item
         self.btn_calculate.setEnabled(True)
-        self.btn_print.setEnabled(True)
+
+    def not_found_case(self):
+            self.cur.execute(
+                            """
+                            SELECT desc_list FROM descriptions WHERE id=?
+                            """, (self.row_id, )
+                        )
+            values = self.cur.fetchall()
+            # Если есть значения, заданные в базе
+            if values:
+                values = json.loads(values[0][0])
+                # Если в базе есть описание для данного значения
+                if str(self.value) in values:
+                    self.print_text = values[str(self.value)]
+                # Если в базе нет описания для полученного значения
+                else:
+                    self.print_text = "Значение по умолчанию не задано"
+            # Если в базе нет значений, т.е fetchall() вернул []
+            else:
+                self.print_text = "Значение по умолчанию не задано"
 
     def on_result_create(self):
         # algo_data[0] -> номер алгоритма
@@ -227,9 +248,6 @@ class CalculateWidget(QtWidgets.QWidget):
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self)
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.btn_print = QtWidgets.QPushButton(self)
-        self.btn_print.setEnabled(False)
-        self.gridLayout.addWidget(self.btn_print, 5, 1, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(30, 10, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 3, 2, 1, 1)
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
@@ -287,8 +305,6 @@ class CalculateWidget(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self.setWindowTitle("Расчёты")
-        self.btn_print.setText("Распечатать")
-        self.btn_print.setIcon(self.icons["print"])
         self.btn_calculate.setText("Рассчитать")
         self.btn_calculate.setIcon(self.icons["calculate"])
         self.btn_close.setText("Закрыть")

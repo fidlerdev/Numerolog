@@ -6,6 +6,7 @@ from load_data import load_settings
 from save_data import save_settings
 from dialog_windows import CloseDialog
 from desc_window import DescriptionWidget
+from alpha_window import AlphaWindow
 import sqlite3
 
 class SettingsWidget(QtWidgets.QWidget):
@@ -18,7 +19,7 @@ class SettingsWidget(QtWidgets.QWidget):
         self.btn_save.clicked.connect(lambda: save_settings(
                     save_chosen_working_dir=self.check_save_wd.isChecked(),
                     chosen_working_dir_path=self.data["chosen_working_dir_path"], #Здесь не меняем ничего
-                    dictionary_list=self.data["dictionary_list"], #Пока что нет функционала
+                    dictionary_list=self.data["dictionary_list"],
                     font=self.fontComboBox.currentFont().family(),
                     font_size=self.spinBox_fontSize.value(),
                     icons_set=self.comboBox_icons.currentIndex() + 1))
@@ -27,10 +28,25 @@ class SettingsWidget(QtWidgets.QWidget):
         self.input_alpha_name.textChanged.connect(self.on_text_changed)
         self.btn_save_dict.clicked.connect(self.save_dict)
         self.listWidget_dicts.itemClicked.connect(self.itemClicked)
+        self.listWidget_dicts.itemDoubleClicked.connect(self.open_alpha_window)
         self.btn_new_dict.clicked.connect(self.new_dict_clicked)
         self.btn_descriptions.clicked.connect(self.open_descriptions)
 
+    def open_alpha_window(self, item):
+        self.alpha_name = item.data(QtCore.Qt.UserRole)
+        self.alpha_window = AlphaWindow(alphabet=self.alpha_name)
+        self.alpha_window.show()
+        self.alpha_window.saved.connect(self.alpha_window_saved)
+    
+    def alpha_window_saved(self, alphabet):
+        print(alphabet)
+        self.data["dictionary_list"][self.alpha_name] = alphabet
+        self.btn_save.click()
+        self.load_alphabs()
+
+
     def load_alphabs(self):
+        self.listWidget_dicts.clear()
         for alphab in self.data["dictionary_list"]:
             string = ""
             if self.data["dictionary_list"][alphab][-1]:
@@ -72,13 +88,14 @@ class SettingsWidget(QtWidgets.QWidget):
 
     def delete_item(self):
         selected_item = self.listWidget_dicts.item(self.selected_row)
-        name = selected_item.text()
+        name = selected_item.data(QtCore.Qt.UserRole)
         self.listWidget_dicts.takeItem(self.selected_row)
         del self.data["dictionary_list"][name]
         self.btn_delete.setEnabled(False)
         self.input_alpha_name.setText("")
         self.txt_alphabet.setText("")
         self.listWidget_dicts.setCurrentRow(-1)
+        self.listWidget_dicts.repaint()
 
 
     def new_dict_clicked(self):
@@ -91,7 +108,7 @@ class SettingsWidget(QtWidgets.QWidget):
         name = item.data(QtCore.Qt.UserRole)
         self.input_alpha_name.setText(name)
         alpha = self.data["dictionary_list"][name][:-1]
-
+        # print(alpha)
         count = 0
 
         # Получаем количество букв в алфавите
@@ -99,12 +116,12 @@ class SettingsWidget(QtWidgets.QWidget):
             count += len(group)
         
         alphabet = ", ".join([str(i) for i in range(count)]) + ", "
-        print(alphabet)
+        # print(alphabet)
         for index_of_group, group in enumerate(alpha):
             for index_of_el, el in enumerate(group):
                 alphabet = alphabet.replace(str(index_of_group + index_of_el * 9) + ", ", el[0], 1)
-                print(alphabet)
-                print(str(index_of_group + index_of_el * 9))
+                # print(alphabet)
+                # print(str(index_of_group + index_of_el * 9))
 
         if count > 0:
             self.txt_alphabet.setText(alphabet)
@@ -132,9 +149,12 @@ class SettingsWidget(QtWidgets.QWidget):
 
             else:
                 for ind, char in enumerate(text):
-                    alphabet[ind % 9].append(char)
+                    alphabet[ind % 9].append([char, 0])
+                # По умолчанию алфавит не настроен
+                alphabet.append(False)
                 self.data["dictionary_list"][self.input_alpha_name.text()] = alphabet
-                self.listWidget_dicts.addItem(self.input_alpha_name.text())
+                self.load_alphabs()
+                # self.listWidget_dicts.addItem(self.input_alpha_name.text())
                 self.input_alpha_name.clear()
                 self.txt_alphabet.clear()
                 self.btn_save.click()
@@ -205,7 +225,7 @@ class SettingsWidget(QtWidgets.QWidget):
 
         path_icons = getcwd() + sep + "resources" + sep + "icons" + sep
 
-        Form.resize(800, 600)
+        Form.resize(800, 700)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.gridLayout_2 = QtWidgets.QGridLayout()
@@ -373,7 +393,8 @@ class SettingsWidget(QtWidgets.QWidget):
         self.btn_save_dict.setText(_translate("self", "Сохранить Алфавит"))
         self.groupBox_4.setTitle(_translate("self", "Алфавит"))
         self.btn_new_dict.setText(_translate("self", "Новый Алфавит"))
-        hint = "Если алфавит не был настроен, алгоритмы 11-13\nне будут доступны"
+        hint = "Если алфавит не был настроен, алгоритмы 11-13\nне будут доступны\n\n" + \
+            "*Дважды нажмите на имя алфавита, чтобы настроить..."
 
         self.label_hint_alpha.setText(_translate("self", hint))
         
