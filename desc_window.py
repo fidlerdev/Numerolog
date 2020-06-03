@@ -30,7 +30,8 @@ class DescriptionWidget(QtWidgets.QWidget):
         self.btn_add_value.clicked.connect(self.on_add_value)
         self.btn_save_description.clicked.connect(self.on_save)
         self.btn_close.clicked.connect(self.on_close)
-        self.list_widget.itemClicked.connect(self.load_values)
+        # self.list_widget.itemClicked.connect(self.load_values)
+        self.list_widget.currentItemChanged.connect(self.load_values)
         self.combo_box.currentIndexChanged.connect(self.on_value_select)
         self.text_description.textChanged.connect(self.check_text_void)
         self.btn_delete.clicked.connect(self.on_delete_value)
@@ -74,22 +75,17 @@ class DescriptionWidget(QtWidgets.QWidget):
             self.btn_delete.setEnabled(False)
 
     # Вызывается при выборе алгоритма
-    def load_values(self, item):
+    def load_values(self, curr_item, prev_item):
 
         self.load()
 
         self.combo_box.clear()
         self.btn_add_value.setEnabled(True)
-        self.item = item
-        values = self.get_values(ind=item.data(QtCore.Qt.UserRole))
-        print("self.descriptions:", self.descriptions)
-        print("values:", values)
-        print("item.data:", item.data(QtCore.Qt.UserRole))
+        self.item = curr_item
+        values = self.get_values(ind=curr_item.data(QtCore.Qt.UserRole))
         # Если найдены значения для выбранного алгоритма
         if values:
-            print("type(values[0][1]):", type(values[0][1]))
             values = json.loads(values[0][1])
-            print("values:", type(values))
             for key, value in values.items():
                 self.combo_box.addItem(key, value)
             self.combo_box.repaint()
@@ -228,6 +224,10 @@ class DescriptionWidget(QtWidgets.QWidget):
         calc.setData(QtCore.Qt.UserRole, 1)
         self.list_widget.addItem(calc)
 
+        calc = QtWidgets.QListWidgetItem("3. Сочетание Дня Рождения и ЧЖП")
+        calc.setData(QtCore.Qt.UserRole, 2)
+        self.list_widget.addItem(calc)
+
         calc = QtWidgets.QListWidgetItem("5. Здоровье по Зюрняевой")
         calc.setData(QtCore.Qt.UserRole, 4)
         self.list_widget.addItem(calc)
@@ -258,6 +258,26 @@ class DescriptionWidget(QtWidgets.QWidget):
 
         calc = QtWidgets.QListWidgetItem("13. Число Индивидуальности")
         calc.setData(QtCore.Qt.UserRole, 12)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("14. Число Зрелости")
+        calc.setData(QtCore.Qt.UserRole, 13)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("15. Число Равновесия")
+        calc.setData(QtCore.Qt.UserRole, 14)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("16. Число Активности")
+        calc.setData(QtCore.Qt.UserRole, 15)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("17. Число Интеллекта")
+        calc.setData(QtCore.Qt.UserRole, 16)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("18. Число Наследственности")
+        calc.setData(QtCore.Qt.UserRole, 17)
         self.list_widget.addItem(calc)
 
         self.label_1.setText("Выберите алгоритм:")

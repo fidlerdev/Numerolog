@@ -16,6 +16,7 @@ class CalculateWidget(QtWidgets.QWidget):
         self.headers = [
             "День Рождения",
             "Число жизненного пути",
+            "Сочетание Дня Рождения и ЧЖП",
             "Здоровье по Зюрняевой",
             "Ментальное число",
             "Финансы по Зюрняевой",
@@ -23,7 +24,12 @@ class CalculateWidget(QtWidgets.QWidget):
             "Профессии",
             "Число судьбы",
             "Число души",
-            "Число Индивидуальности"
+            "Число Индивидуальности",
+            "Число Зрелости",
+            "Число Равновесия",
+            "Число Активности",
+            "Число Интеллекта",
+            "Число Наследственности"
         ]
         self.setupUi()
         self.load_data(path=path)
@@ -100,7 +106,7 @@ class CalculateWidget(QtWidgets.QWidget):
         self.result_widget.show()
 
     def calculate(self, algo):
-        if algo in range(13):
+        if algo in range(18):
             return eval("self.algo_{}()".format(algo))
         else: return -1
 
@@ -128,10 +134,8 @@ class CalculateWidget(QtWidgets.QWidget):
 
         return total
 
-
-
     def algo_2(self):
-        pass
+        return int(str(self.algo_0()) + str(self.algo_1()))
 
     def algo_3(self):
         pass
@@ -180,6 +184,82 @@ class CalculateWidget(QtWidgets.QWidget):
     def algo_12(self):
         return self.algo_10__12(algo=12)
 
+    def algo_13(self):
+        value = self.algo_1() + self.algo_10()
+        total = 0
+        while True:
+            while value:
+                total += value % 10
+                value //= 10
+            print(total)
+            if total < 9 or total == 11 or total == 22 or \
+               total == 33:
+                break
+            value = total
+            total = 0
+
+        return total
+
+    def algo_14(self):
+        al_name = self.data["dictionary"]
+        alphabet = self.settings['dictionary_list'][al_name][:-1]
+        surname = self.data['surname']
+        name = self.data['name']
+        middle_name = self.data['middle_name']
+
+        pers_data = [surname[0], name[0], middle_name[0]]
+        value = 0
+        for letter in pers_data:
+            if letter:
+                for ind, arr in enumerate(alphabet):
+                    val = ind + 1
+                    for alpha_letter in arr:
+                        if alpha_letter[0].lower() == letter.lower():
+                            value += val
+                            print(val)
+
+        total = 0
+
+        if value > 9 and value != 11 and value != 22:
+            total = 0
+            while True:
+                while value:
+                    total += value % 10
+                    value //= 10
+                if total < 10 or total in [11, 22]:
+                    break
+                value = total
+                total = 0
+        else:
+            total = value
+
+        return total
+
+    def algo_15(self):
+        return self.algo_10__12(algo=15)
+    
+    def algo_16(self):
+        date_of_birth = self.algo_0()
+        value = self.algo_15()
+        for i in str(date_of_birth):
+            value += int(i)
+        total = 0
+        while True:
+            while value:
+                total += value % 10
+                value //= 10
+            print(total)
+            if total < 9 or total == 11 or total == 22 or \
+               total == 33:
+                break
+            value = total
+            total = 0
+
+        return total
+
+    def algo_17(self):
+        return self.algo_10__12(algo=17)
+
     def algo_10__12(self, algo):
         al_name = self.data["dictionary"]
         alphabet = self.settings["dictionary_list"][al_name][:-1] # Данные в формате tuple(Символ unicode, 1/0) + искл. посл. знач.
@@ -224,7 +304,12 @@ class CalculateWidget(QtWidgets.QWidget):
                 total = 0
             values[ind] = total
 
-        value = sum(values) # суммируем все значения 
+        if algo == 15:
+            value = values[1]
+        elif algo == 17:
+            value = values[0]
+        else:
+            value = sum(values) # суммируем все значения 
         if value > 9 and value != 11 and value != 22:
             total = 0
             while True:
@@ -268,8 +353,8 @@ class CalculateWidget(QtWidgets.QWidget):
         self.list_calculate.setProperty("isWrapping", False)
         self.list_calculate.setResizeMode(QtWidgets.QListView.Fixed)
 
-        # Создаем 10 ячеек в таблице
-        for _ in range(10):
+        # Создаем 16 ячеек в таблице
+        for _ in range(16):
             item = QtWidgets.QListWidgetItem()
             self.list_calculate.addItem(item)
 
@@ -311,8 +396,8 @@ class CalculateWidget(QtWidgets.QWidget):
         __sortingEnabled = self.list_calculate.isSortingEnabled()
         self.list_calculate.setSortingEnabled(False)
         # Редактируем ячейки списка
-        values = [0, 1, 4, 5, 6, 7, 8, 10, 11, 12]
-        for num in zip(values, list(range(10))):
+        values = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17]
+        for num in zip(values, range(16)):
             item = self.list_calculate.item(num[1])
             # item.data == (Номер алгоритма, порядковый номер в self.headers)
             item.setData(QtCore.Qt.UserRole, (num[0], num[1]))

@@ -22,7 +22,7 @@ from settings import SettingsWidget
 
 import os
 
-_VERSION = "0.6"
+_VERSION = "0.7"
 
 # Класс, описывающий стартовое окно с hint'ами
 class StartPage(QtWidgets.QWidget):
