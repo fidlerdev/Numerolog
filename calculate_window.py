@@ -29,13 +29,20 @@ class CalculateWidget(QtWidgets.QWidget):
             "Число Равновесия",
             "Число Активности",
             "Число Интеллекта",
-            "Число Наследственности"
+            "Число Наследственности",
+            "Карта Инклюзий",
+            "Кармические уроки",
+            "Скрытая страсть (Тайное желание)",
+            "Подсознательное «Я»",
+            "Персональный год",
+            "Персональный месяц"
         ]
         self.setupUi()
         self.load_data(path=path)
         
         self.btn_close.clicked.connect(self.close)
 
+        self.list_calculate.currentItemChanged.connect(self.on_item_clicked)
         self.list_calculate.itemClicked.connect(self.on_item_clicked)
         self.btn_calculate.clicked.connect(self.on_result_create)
 
@@ -106,7 +113,7 @@ class CalculateWidget(QtWidgets.QWidget):
         self.result_widget.show()
 
     def calculate(self, algo):
-        if algo in range(18):
+        if algo in range(22):
             return eval("self.algo_{}()".format(algo))
         else: return -1
 
@@ -260,6 +267,28 @@ class CalculateWidget(QtWidgets.QWidget):
     def algo_17(self):
         return self.algo_10__12(algo=17)
 
+    def algo_18(self):
+        al_name = self.data['dictionary']
+        alphabet = self.settings["dictionary_list"][al_name][:-1] # Данные в формате tuple(Символ unicode, 1/0) + искл. посл. 
+        surname = self.data["surname"]                       # 1 -> гласная буква
+        name = self.data["name"]                             # 0 -> согласная буква
+        middle_name = self.data["middle_name"]
+        pers_data = [surname, name, middle_name] # Записываем Фам, Им, Отч
+        # values = [0, 0, 0] # Значения сумм для Фам, Им и Отч
+        total = ['Нет'] * 9
+        for word in pers_data:
+            if word:
+                for letter in word:
+                    for ind, arr in enumerate(alphabet):
+                        # val = ind + 1
+                        for alpha_letter in arr:
+                            if alpha_letter[0].lower() == letter.lower():
+                                if total[ind] == 'Нет':
+                                    total[ind] = 1
+                                else:
+                                    total[ind] += 1
+        return total
+
     def algo_10__12(self, algo):
         al_name = self.data["dictionary"]
         alphabet = self.settings["dictionary_list"][al_name][:-1] # Данные в формате tuple(Символ unicode, 1/0) + искл. посл. знач.
@@ -353,8 +382,8 @@ class CalculateWidget(QtWidgets.QWidget):
         self.list_calculate.setProperty("isWrapping", False)
         self.list_calculate.setResizeMode(QtWidgets.QListView.Fixed)
 
-        # Создаем 16 ячеек в таблице
-        for _ in range(16):
+        # Создаем 22 ячеек в таблице
+        for _ in range(22):
             item = QtWidgets.QListWidgetItem()
             self.list_calculate.addItem(item)
 
@@ -396,8 +425,8 @@ class CalculateWidget(QtWidgets.QWidget):
         __sortingEnabled = self.list_calculate.isSortingEnabled()
         self.list_calculate.setSortingEnabled(False)
         # Редактируем ячейки списка
-        values = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17]
-        for num in zip(values, range(16)):
+        values = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 25, 26]
+        for num in zip(values, range(22)):
             item = self.list_calculate.item(num[1])
             # item.data == (Номер алгоритма, порядковый номер в self.headers)
             item.setData(QtCore.Qt.UserRole, (num[0], num[1]))
@@ -422,6 +451,6 @@ class CalculateWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    widget = CalculateWidget(None, r"/Users/fidler/Desktop/Контрагенты/Ваня.json")
+    widget = CalculateWidget(None, r"/Users/fidler/Desktop/Контрагенты/АЛекс.json")
     widget.show()
     sys.exit(app.exec())

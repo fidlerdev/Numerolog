@@ -5,41 +5,61 @@ import sqlite3, json
 from load_data import load
 from load_resources import get_icons
 from save_data import save
+from image_gen import TableImage
 
 class ResultWidget(QtWidgets.QWidget):
 
     def __init__(self, path, header_text, value, row_id, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
         self.icons = get_icons()
-        self.setupUi()
-        self.value = value
-        self.header_text = header_text
         self.row_id = row_id
+        self.value = value
+        self.setupUi()
+        self.header_text = header_text
         self.path=path
 
         self.con = sqlite3.connect("desc.db")
         self.cur = self.con.cursor()
 
-        self.load_desc()
         
         self.lbl_header.setText(self.header_text)
-        self.input_value.setText(str(self.value))
+
+        try:
+            self.load_desc()
+            self.input_value.setText(str(self.value))
+            self.txt_description.textChanged.connect(self.desc_changed)
+            self.input_value.textChanged.connect(self.value_changed)
+            self.input_value.setReadOnly(True)
+        except AttributeError as err:
+            print(err)
 
 
         self.btn_close.clicked.connect(self.on_close)
         self.btn_save.clicked.connect(self.on_save)
-        self.input_value.textChanged.connect(self.value_changed)
-        self.txt_description.textChanged.connect(self.desc_changed)
         self.btn_print.clicked.connect(self.print_out)
-        self.input_value.setReadOnly(True)
 
     def print_out(self):
+        
         self.txt_print_out = QtWidgets.QTextEdit()
-        print_out_text = "Наименование: {}\nЗначение: {}\n\nОписание:\n{}".format(self.input_nametag.text(),
-                                                                                self.value,
-                                                                                self.txt_description.toPlainText())
+        if self.row_id == 18:
+            print_out_text: str = "Наименование: {}\nЗначение:".format(
+                self.input_nametag.text()
+            )
+        else:
+            print_out_text: str = "Наименование: {}\nЗначение: {}\n\nОписание:\n{}".format(
+                self.input_nametag.text(),
+                self.value,
+                self.txt_description.toPlainText()
+            )
+        
         self.txt_print_out.setText(print_out_text)
         printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+        if self.row_id == 18:
+            painter = QtGui.QPainter()
+            painter.begin(printer)
+            print(printer.width(), printer.height())
+            painter.drawPixmap(printer.width() / 2, printer.height() / 2, QtGui.QPixmap.fromImage(self.table_img.return_image()))
+            painter.end()
         previewDialog = QtPrintSupport.QPrintPreviewDialog(printer, self)
         previewDialog.setWindowTitle("Предпросмотр")
         previewDialog.paintRequested.connect(self.printPreview)
@@ -47,6 +67,7 @@ class ResultWidget(QtWidgets.QWidget):
 
     def printPreview(self, printer):
         self.txt_print_out.print(printer)
+
 
 
     # Debugging
@@ -85,24 +106,25 @@ class ResultWidget(QtWidgets.QWidget):
             self.not_found_case()
 
     def not_found_case(self):
-            self.cur.execute(
-                            """
-                            SELECT desc_list FROM descriptions WHERE id=?
-                            """, (self.row_id, )
-                        )
-            values = self.cur.fetchall()
-            # Если есть значения, заданные в базе
-            if values:
-                values = json.loads(values[0][0])
-                # Если в базе есть описание для данного значения
-                if str(self.value) in values:
-                    self.txt_description.setText(values[str(self.value)])
-                # Если в базе нет описания для полученного значения
-                else:
-                    self.txt_description.setText("Значение по умолчанию не задано")
-            # Если в базе нет значений, т.е fetchall() вернул []
+        self.cur.execute(
+                        """
+                        SELECT desc_list FROM descriptions WHERE id=?
+                        """, (self.row_id, )
+                    )
+        values = self.cur.fetchall()
+        # Если есть значения, заданные в базе
+        if values:
+            values = json.loads(values[0][0])
+            # Если в базе есть описание для данного значения
+            if str(self.value) in values:
+                self.txt_description.setText(values[str(self.value)])
+            # Если в базе нет описания для полученного значения
             else:
                 self.txt_description.setText("Значение по умолчанию не задано")
+        # Если в базе нет значений, т.е fetchall() вернул []
+        else:
+            self.txt_description.setText("Значение по умолчанию не задано")
+
 
 
 
@@ -178,25 +200,49 @@ class ResultWidget(QtWidgets.QWidget):
         self.group_box_2 = QtWidgets.QGroupBox()
         self.verticalLayout.addWidget(self.group_box_2)
         self.v_layout = QtWidgets.QVBoxLayout()
-        self.input_value = QtWidgets.QLineEdit(self.group_box_2)
-        self.v_layout.addWidget(self.input_value)
+        if self.row_id != 18:
+            self.input_value = QtWidgets.QLineEdit(self.group_box_2)
+            self.v_layout.addWidget(self.input_value)
+        else:
+            self.table_img = TableImage(
+                values=self.value,
+                size=(270, 270),
+                ttf='./resources/arial.ttf',
+                i_size=18,
+                n_size=35,
+                fill='#000000',
+                alert_fill='#ff4d00'
+            )
+            self.table_img.prepare_image(line_w=2)
+            self.lbl_image = QtWidgets.QLabel()
+            image = self.table_img.return_image()
+            self.lbl_image.setPixmap(QtGui.QPixmap.fromImage(image))
+
+            self.v_layout.addWidget(self.lbl_image)
+
         self.group_box_2.setLayout(self.v_layout)
         self.verticalLayout.addWidget(self.group_box_2)
 
-        self.group_box_3 = QtWidgets.QGroupBox()
-        self.verticalLayout.addWidget(self.group_box_3)
-        self.v_layout = QtWidgets.QVBoxLayout()
-        self.txt_description = QtWidgets.QTextEdit(self.group_box_3)
-        self.v_layout.addWidget(self.txt_description)
-        self.group_box_3.setLayout(self.v_layout)
-        self.verticalLayout.addWidget(self.group_box_3)
+
+        if self.row_id != 18:
+            self.group_box_3 = QtWidgets.QGroupBox()
+            self.verticalLayout.addWidget(self.group_box_3)
+
+            self.v_layout = QtWidgets.QVBoxLayout()
+
+            self.txt_description = QtWidgets.QTextEdit(self.group_box_3)
+
+            self.v_layout.addWidget(self.txt_description)
+
+            self.group_box_3.setLayout(self.v_layout)
+            self.verticalLayout.addWidget(self.group_box_3)
 
         self.horizontalLayout = QtWidgets.QHBoxLayout()
 
         self.btn_save = QtWidgets.QPushButton(self)
         self.horizontalLayout.addWidget(self.btn_save)
         self.btn_print = QtWidgets.QPushButton(self)
-        self.btn_print.setIcon(self.icons["print"])
+        self.btn_print.setIcon(self.icons['print'])
         self.horizontalLayout.addWidget(self.btn_print)
         self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
         self.btn_close = QtWidgets.QPushButton(self)
@@ -208,11 +254,15 @@ class ResultWidget(QtWidgets.QWidget):
         self.setWindowTitle("Расчёты")
         self.lbl_header.setText("Header")
         self.input_nametag.setPlaceholderText("Наименование")
-        self.input_value.setPlaceholderText("Значение")
-        self.txt_description.setPlaceholderText("Поле для описания")
         self.btn_save.setText("Сохранить")
         self.btn_close.setText("Закрыть")
         self.group_box_1.setTitle("Наименование")
         self.group_box_2.setTitle("Значение")
-        self.group_box_3.setTitle("Описание")
+        try:
+            self.group_box_3.setTitle("Описание")
+            self.input_value.setPlaceholderText("Значение")
+            self.txt_description.setPlaceholderText("Поле для описания")
+        except AttributeError as err:
+            print(err)
+        
 

@@ -279,6 +279,30 @@ class DescriptionWidget(QtWidgets.QWidget):
         calc = QtWidgets.QListWidgetItem("18. Число Наследственности")
         calc.setData(QtCore.Qt.UserRole, 17)
         self.list_widget.addItem(calc)
+        
+        calc = QtWidgets.QListWidgetItem("19. Карта Инклюзий")
+        calc.setData(QtCore.Qt.UserRole, 18)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("20. Кармические уроки")
+        calc.setData(QtCore.Qt.UserRole, 19)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("21. Скрытая страсть (Тайное желание)")
+        calc.setData(QtCore.Qt.UserRole, 20)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("22. Подсознательное «Я»")
+        calc.setData(QtCore.Qt.UserRole, 21)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("26. Персональный год")
+        calc.setData(QtCore.Qt.UserRole, 25)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem("27. Число Наследственности")
+        calc.setData(QtCore.Qt.UserRole, 26)
+        self.list_widget.addItem(calc)
 
         self.label_1.setText("Выберите алгоритм:")
         self.label_2.setText("Выберите значение:")
