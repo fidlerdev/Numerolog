@@ -113,7 +113,8 @@ class CalculateWidget(QtWidgets.QWidget):
         self.result_widget.show()
 
     def calculate(self, algo):
-        if algo in range(22):
+        if algo in range(27):
+            print('ALGO:', algo)
             return eval("self.algo_{}()".format(algo))
         else: return -1
 
@@ -288,6 +289,94 @@ class CalculateWidget(QtWidgets.QWidget):
                                 else:
                                     total[ind] += 1
         return total
+
+    def algo_19(self):
+        arr = self.algo_18()
+        total = 0
+        for elem in arr:
+            if elem == 'Нет':
+                total += 1
+
+        return total
+
+    def algo_20(self):
+        arr = self.algo_18()
+        total = 0
+        K = 3
+        for elem in arr:
+            try:
+                if elem > K:
+                    total += 1
+            except TypeError:
+                continue
+
+        return total
+    
+    def algo_21(self):
+        return (9 - self.algo_19())
+
+    def algo_25(self):
+        import datetime
+
+        year = [int(x) for x in str(datetime.datetime.now().year)]
+
+        day = [int(x) for x in str(self.data['date_of_birth'][0])]
+
+        month = [int(x) for x in str(self.data['date_of_birth'][1])]
+
+        print('year:', year)
+        print('month:', day)
+        print('day:', month)
+
+        arr = year + day + month
+
+        print('arr:', arr)
+
+        total = 0
+
+        for i in arr:
+            total += i
+        
+        print('total:', total)
+
+        summary = 0
+        while True:
+            summary += total % 10
+            total //= 10
+            if total == 0:
+                print('summary:', summary)
+                if summary < 10:
+                    break
+                if summary > 10:
+                    total = summary
+                    summary = 0
+
+        return summary
+
+
+
+    def algo_26(self):
+        import datetime
+        pers_year = self.algo_25()
+        month = str(datetime.datetime.now().month)
+
+        try:
+            total = int(month[0]) + int(month[1]) + pers_year
+        except IndexError:
+            total = int(month[0]) + pers_year
+
+        summary = 0
+        while True:
+            summary += total % 10
+            total //= 10
+            if total == 0:
+                if summary < 10:
+                    break
+                if summary > 10:
+                    total = summary
+                    summary = 0
+
+        return summary
 
     def algo_10__12(self, algo):
         al_name = self.data["dictionary"]

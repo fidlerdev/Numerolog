@@ -35,8 +35,9 @@ class ResultWidget(QtWidgets.QWidget):
 
 
         self.btn_close.clicked.connect(self.on_close)
-        self.btn_save.clicked.connect(self.on_save)
-        self.btn_print.clicked.connect(self.print_out)
+        if self.row_id != 18:
+            self.btn_save.clicked.connect(self.on_save)
+            self.btn_print.clicked.connect(self.print_out)
 
     def print_out(self):
         
@@ -53,17 +54,21 @@ class ResultWidget(QtWidgets.QWidget):
             )
         
         self.txt_print_out.setText(print_out_text)
-        printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+        # printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
+        printer = QtPrintSupport.QPrinter()
+        '''
         if self.row_id == 18:
             painter = QtGui.QPainter()
             painter.begin(printer)
             print(printer.width(), printer.height())
-            painter.drawPixmap(printer.width() / 2, printer.height() / 2, QtGui.QPixmap.fromImage(self.table_img.return_image()))
-            painter.end()
+            image = self.table_img.return_image()
+            painter.drawPixmap(printer.width() / 2, printer.height() / 2, QtGui.QPixmap.fromImage(image))
+        '''
         previewDialog = QtPrintSupport.QPrintPreviewDialog(printer, self)
         previewDialog.setWindowTitle("Предпросмотр")
         previewDialog.paintRequested.connect(self.printPreview)
         previewDialog.exec()
+
 
     def printPreview(self, printer):
         self.txt_print_out.print(printer)
@@ -223,6 +228,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.group_box_2.setLayout(self.v_layout)
         self.verticalLayout.addWidget(self.group_box_2)
 
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
 
         if self.row_id != 18:
             self.group_box_3 = QtWidgets.QGroupBox()
@@ -236,15 +242,13 @@ class ResultWidget(QtWidgets.QWidget):
 
             self.group_box_3.setLayout(self.v_layout)
             self.verticalLayout.addWidget(self.group_box_3)
+            self.btn_print = QtWidgets.QPushButton(self)
+            self.btn_print.setIcon(self.icons['print'])
+            self.btn_save = QtWidgets.QPushButton(self)
+            self.horizontalLayout.addWidget(self.btn_print)
+            self.horizontalLayout.addWidget(self.btn_save)
+            self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
 
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-
-        self.btn_save = QtWidgets.QPushButton(self)
-        self.horizontalLayout.addWidget(self.btn_save)
-        self.btn_print = QtWidgets.QPushButton(self)
-        self.btn_print.setIcon(self.icons['print'])
-        self.horizontalLayout.addWidget(self.btn_print)
-        self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
         self.btn_close = QtWidgets.QPushButton(self)
         self.horizontalLayout.addWidget(self.btn_close)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -254,11 +258,11 @@ class ResultWidget(QtWidgets.QWidget):
         self.setWindowTitle("Расчёты")
         self.lbl_header.setText("Header")
         self.input_nametag.setPlaceholderText("Наименование")
-        self.btn_save.setText("Сохранить")
         self.btn_close.setText("Закрыть")
         self.group_box_1.setTitle("Наименование")
         self.group_box_2.setTitle("Значение")
         try:
+            self.btn_save.setText("Сохранить")
             self.group_box_3.setTitle("Описание")
             self.input_value.setPlaceholderText("Значение")
             self.txt_description.setPlaceholderText("Поле для описания")

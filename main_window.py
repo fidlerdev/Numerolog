@@ -302,8 +302,14 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print("Файл с настройками не найден, создаем новый...")
         data = save_settings(create_new=True)
+    
     #######################
     app = QtWidgets.QApplication(sys.argv)
+
+    # Проверка на наличие базы с описаниями
+    settings = SettingsWidget(parent=None)
+    settings.check_db()
+
     app.setWindowIcon(get_icons()["main_beta_2"])
     app.setFont(QtGui.QFont(data["font"], data["font_size"]))
     #######################
