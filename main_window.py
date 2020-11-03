@@ -33,25 +33,7 @@ class StartPage(QtWidgets.QWidget):
 
         self.label = QtWidgets.QLabel(alignment=QtCore.Qt.AlignCenter)
 
-        # self.hbox_1 = QtWidgets.QHBoxLayout(self)
-        # self.groupBox_1 = QtWidgets.QGroupBox()
-        # self.image_1 = QtWidgets.QLabel(self.groupBox_1)
-        # self.groupBox_2 = QtWidgets.QGroupBox()
-        # self.image_2 = QtWidgets.QLabel(self.groupBox_2)
-
-        # self.hbox_2 = QtWidgets.QHBoxLayout(self)
-        # self.groupBox_3 = QtWidgets.QGroupBox()
-        # self.image_3 = QtWidgets.QLabel(self.groupBox_3)
-        # self.groupBox_4 = QtWidgets.QGroupBox()
-        # self.image_4 = QtWidgets.QLabel(self.groupBox_4)
-
         self.vbox.addWidget(self.label)
-        # self.vbox.addLayout(self.hbox_1)
-        # self.hbox_1.addWidget(self.groupBox_1)
-        # self.hbox_1.addWidget(self.groupBox_2)
-        # self.vbox.addLayout(self.hbox_2)
-        # self.hbox_2.addWidget(self.groupBox_3)
-        # self.hbox_2.addWidget(self.groupBox_4)
 
         self.vbox.addSpacerItem(QtWidgets.QSpacerItem(0, 50))
 
@@ -62,14 +44,6 @@ class StartPage(QtWidgets.QWidget):
             \n\n\n\tВерсия: {ver}".format(ver=_VERSION))
         font = QtGui.QFont(load_settings()["font"], pointSize=18)
         self.label.setFont(font)
-        # # self.image_1.setPixmap(get_icons()[""].pixmap())
-        # # self.image_2.setPixmap(get_icons()[""].pixmap())
-        # # self.image_3.setPixmap(get_icons()[""].pixmap())
-        # # self.image_4.setPixmap(get_icons()[""].pixmap())
-        # self.groupBox_1.setTitle("Начало работы")
-        # self.groupBox_2.setTitle("Настройки")
-        # self.groupBox_3.setTitle("Добавление описаний по умолчанию")
-        # self.groupBox_4.setTitle("Создание словаря")
 
 
 class MainWindow(QtWidgets.QMainWindow):
