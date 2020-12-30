@@ -16,7 +16,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.value = value
         self.setupUi()
         self.header_text = header_text
-        self.path=path
+        self.path = path
 
         self.con = sqlite3.connect("desc.db")
         self.cur = self.con.cursor()
@@ -27,20 +27,20 @@ class ResultWidget(QtWidgets.QWidget):
         try:
             self.load_desc()
             self.input_value.setText(str(self.value))
-            self.txt_description.textChanged.connect(self.desc_changed)
+            if self.row_id not in range(22, 24 + 1):
+                self.txt_description.textChanged.connect(self.desc_changed)
             self.input_value.textChanged.connect(self.value_changed)
             self.input_value.setReadOnly(True)
         except AttributeError as err:
-            print(err)
-
+            pass
 
         self.btn_close.clicked.connect(self.on_close)
         if self.row_id != 18:
-            self.btn_save.clicked.connect(self.on_save)
             self.btn_print.clicked.connect(self.print_out)
+            if self.row_id not in range(22, 24 + 1):
+                self.btn_save.clicked.connect(self.on_save)
 
     def print_out(self):
-        
         self.txt_print_out = QtWidgets.QTextEdit()
         if self.row_id == 18:
             print_out_text: str = "Наименование: {}\nЗначение:".format(
@@ -89,26 +89,90 @@ class ResultWidget(QtWidgets.QWidget):
         self.btn_save.repaint()
 
     def load_desc(self):
-        custom_desc_list = load(path=self.path)["desc_list"]
-        # Проверка на значение None
-        if custom_desc_list:
-            custom_desc_list = [x[1] for x in custom_desc_list if x[0] == self.row_id]
-            # Если нашли значения для выбранного алгоритма
+        print('PATH:', self.path)
+        if self.row_id not in range(22, 24 + 1):
+            custom_desc_list = load(path=self.path)["desc_list"]
+            # Проверка на значение None
             if custom_desc_list:
-                custom_desc_list = custom_desc_list[0]
-                # Если для значения установлено уникальное описание
-                if str(self.value) in custom_desc_list:
-                    txt = custom_desc_list[str(self.value)]
-                    self.txt_description.setText(txt)
-                # В противном случае ищем описания заданные по умолчанию для данного значения в БАЗЕ
+                custom_desc_list = [x[1] for x in custom_desc_list if x[0] == self.row_id]
+                # Если нашли значения для выбранного алгоритма
+                if custom_desc_list:
+                    custom_desc_list = custom_desc_list[0]
+                    # Если для значения установлено уникальное описание
+                    if str(self.value) in custom_desc_list:
+                        texts = custom_desc_list[str(self.value)]
+                        self.txt_description.setText(texts)
+                    # В противном случае ищем описания заданные по умолчанию для данного значения в БАЗЕ
+                    else:
+                        self.not_found_case()
+                # Если НЕ нашли значения для выбранного алгоритма
                 else:
                     self.not_found_case()
-            # Если НЕ нашли значения для выбранного алгоритма
+            # Проверка на None не пройдена
             else:
                 self.not_found_case()
-        # Проверка на None не пройдена
+        # Для алгоритмов 23-25
         else:
-            self.not_found_case()
+            self.cur.execute(
+                        """
+                        SELECT desc_list FROM descriptions WHERE id=?
+                        """, (self.row_id, )
+                    )
+            values = json.loads(self.cur.fetchall()[0][0])
+
+            if self.row_id == 22:
+                texts = [
+                '1-я Проблема = {}',
+                '2-я Проблема = {}',
+                '3-я Проблема = {}',
+                '4-я Проблема = {}'
+                ]
+            if self.row_id == 23:
+                texts = [
+                    '1-й Пик = {}',
+                    '2-й Пик = {}',
+                    '3-й Пик = {}',
+                    '4-й Пик = {}'
+                ]
+            if self.row_id == 24:
+                texts = [
+                    'Формирующий цикл = {}',
+                    'Продуктивный цикл = {}',
+                    'Результативный цикл = {}'
+                ]
+
+            str_vals = self.value.split('\n')[1:-1]
+
+            calc_vals = []
+            # Добавляем значения (довольно костыльно)
+            for i in range(len(texts)):
+                calc_vals.append(str_vals[i][-1])
+
+            # calc_vals.append(str_vals[0][-1])
+            # calc_vals.append(str_vals[1][-1])
+            # calc_vals.append(str_vals[2][-1])
+            # calc_vals.append(str_vals[3][-1])
+
+            for type_, calc_val in enumerate(calc_vals, start=1):
+                for key in values.keys():
+                    type_val, val = key.split(' : ')
+                    print(type_, int(type_val), int(calc_val), int(val))
+                    if str(type_) == type_val and calc_val == val:
+                        texts[type_ - 1] = texts[type_ - 1].format(values[key])
+                        break
+                texts[type_ - 1] = texts[type_ - 1].format('Значение по умолчанию не задано')
+
+            from pprint import pprint
+            pprint(str_vals)
+            print('VALUES:')
+            pprint(values)
+            txt = '\n'
+            for t in texts:
+                txt += t + '\n'
+            txt += '\n'
+
+            self.txt_description.setText(txt)
+
 
     def not_found_case(self):
         self.cur.execute(
@@ -117,6 +181,7 @@ class ResultWidget(QtWidgets.QWidget):
                         """, (self.row_id, )
                     )
         values = self.cur.fetchall()
+        print(values)
         # Если есть значения, заданные в базе
         if values:
             values = json.loads(values[0][0])
@@ -206,7 +271,10 @@ class ResultWidget(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.group_box_2)
         self.v_layout = QtWidgets.QVBoxLayout()
         if self.row_id != 18:
-            self.input_value = QtWidgets.QLineEdit(self.group_box_2)
+            if self.row_id in range(22, 24 + 1):
+                self.input_value = QtWidgets.QTextEdit(self.group_box_2)
+            else:
+                self.input_value = QtWidgets.QLineEdit(self.group_box_2)
             self.v_layout.addWidget(self.input_value)
         else:
             self.table_img = TableImage(
@@ -244,9 +312,15 @@ class ResultWidget(QtWidgets.QWidget):
             self.verticalLayout.addWidget(self.group_box_3)
             self.btn_print = QtWidgets.QPushButton(self)
             self.btn_print.setIcon(self.icons['print'])
-            self.btn_save = QtWidgets.QPushButton(self)
+            # Нельзя сохранять/изменять значение, если выбран алгоритм 23-25
+            self.txt_description.setReadOnly(True)
+
+            if self.row_id not in range(22, 24 + 1):
+                self.btn_save = QtWidgets.QPushButton(self)
+                self.horizontalLayout.addWidget(self.btn_save)
+                self.txt_description.setReadOnly(True)
+
             self.horizontalLayout.addWidget(self.btn_print)
-            self.horizontalLayout.addWidget(self.btn_save)
             self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
 
         self.btn_close = QtWidgets.QPushButton(self)
@@ -262,11 +336,9 @@ class ResultWidget(QtWidgets.QWidget):
         self.group_box_1.setTitle("Наименование")
         self.group_box_2.setTitle("Значение")
         try:
-            self.btn_save.setText("Сохранить")
             self.group_box_3.setTitle("Описание")
+            self.btn_save.setText("Сохранить")
             self.input_value.setPlaceholderText("Значение")
             self.txt_description.setPlaceholderText("Поле для описания")
         except AttributeError as err:
             print(err)
-        
-

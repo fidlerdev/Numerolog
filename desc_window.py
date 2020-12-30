@@ -14,7 +14,7 @@ class DescriptionWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         QtWidgets.QWidget.__init__(self, parent=parent)
         self.setupUi()
-
+        print('desc_window.py')
         self.btn_add_value.setEnabled(False)
         self.btn_save_description.setEnabled(False)
         self.btn_delete.setEnabled(False)
@@ -30,7 +30,7 @@ class DescriptionWidget(QtWidgets.QWidget):
         self.btn_add_value.clicked.connect(self.on_add_value)
         self.btn_save_description.clicked.connect(self.on_save)
         self.btn_close.clicked.connect(self.on_close)
-        # self.list_widget.itemClicked.connect(self.load_values)
+        self.list_widget.itemClicked.connect(self.load_values)
         self.list_widget.currentItemChanged.connect(self.load_values)
         self.combo_box.currentIndexChanged.connect(self.on_value_select)
         self.text_description.textChanged.connect(self.check_text_void)
@@ -73,22 +73,61 @@ class DescriptionWidget(QtWidgets.QWidget):
             self.btn_delete.setEnabled(True)
         else:
             self.btn_delete.setEnabled(False)
+        self.text_description.update()
+        self.combo_box.update()
 
     # Вызывается при выборе алгоритма
-    def load_values(self, curr_item, prev_item):
+    def load_values(self, curr_item, **kwargs):
+        index = curr_item.data(QtCore.Qt.UserRole)
+        if index == 22:
+            self.radioButton_1.setChecked(True)
+            self.radioButton_1.setText('1-я Проблема')
+            self.radioButton_2.setText('2-я Проблема')
+            self.radioButton_3.setText('3-я Проблема')
+            self.radioButton_4.setText('4-я Проблема')
+            self.radioButton_1.show()
+            self.radioButton_2.show()
+            self.radioButton_3.show()
+            self.radioButton_4.show()
+
+        elif index == 23:
+            self.radioButton_1.setChecked(True)
+            self.radioButton_1.setText('1-й Пик')
+            self.radioButton_2.setText('2-й Пик')
+            self.radioButton_3.setText('3-й Пик')
+            self.radioButton_4.setText('4-й Пик')
+            self.radioButton_1.show()
+            self.radioButton_2.show()
+            self.radioButton_3.show()
+            self.radioButton_4.show()
+
+        elif index == 24:
+            self.radioButton_1.setChecked(True)
+            self.radioButton_1.setText('1. Формирующий цикл')
+            self.radioButton_2.setText('2. Продуктивный цикл')
+            self.radioButton_3.setText('3. Результативный цикл')
+            self.radioButton_1.show()
+            self.radioButton_2.show()
+            self.radioButton_3.show()
+            self.radioButton_4.hide()
+        else:
+            self.radioButton_1.hide()
+            self.radioButton_2.hide()
+            self.radioButton_3.hide()
+            self.radioButton_4.hide()
 
         self.load()
 
         self.combo_box.clear()
         self.btn_add_value.setEnabled(True)
         self.item = curr_item
-        values = self.get_values(ind=curr_item.data(QtCore.Qt.UserRole))
+        values = self.get_values(ind=index)
         # Если найдены значения для выбранного алгоритма
         if values:
             values = json.loads(values[0][1])
             for key, value in values.items():
                 self.combo_box.addItem(key, value)
-            self.combo_box.repaint()
+        self.combo_box.update()
 
 
     def get_values(self, ind):
@@ -102,9 +141,12 @@ class DescriptionWidget(QtWidgets.QWidget):
             """
             )
         self.descriptions = self.cur.fetchall()
+        from pprint import pprint
+        pprint(self.descriptions)
 
     def on_save(self):
-        cur_val = int(self.combo_box.currentText())
+        cur_val = self.combo_box.currentText()
+
         values = self.get_values(ind=self.item.data(QtCore.Qt.UserRole))
         # Если для выбранного алгоритма уже есть значения
         if values:
@@ -117,7 +159,7 @@ class DescriptionWidget(QtWidgets.QWidget):
             )
             self.con.commit()
         else:
-            values = {str(cur_val): self.text_description.toPlainText()}
+            values = {cur_val: self.text_description.toPlainText()}
             
         values = json.dumps(values)
         self.cur.execute(
@@ -141,8 +183,32 @@ class DescriptionWidget(QtWidgets.QWidget):
         if str(self.spin_box.value()) in all_items:
             QtWidgets.QMessageBox.warning(self, "Предупреждение", "Значение уже существует", defaultButton=QtWidgets.QMessageBox.Ok)
             return
-        self.combo_box.addItem(str(self.spin_box.value()))
-        self.combo_box.setCurrentText(str(self.spin_box.value()))
+        
+        ind = self.item.data(QtCore.Qt.UserRole)
+        # Если выбран алгоритм с 23 по 25
+        pref = ''
+        print(ind in range(22, 24 + 1))
+        if ind in range(22, 24 + 1):
+            if self.radioButton_1.isChecked():
+                pref = '1'
+                print(1)
+            elif self.radioButton_2.isChecked():
+                pref = '2'
+                print(2)
+            elif self.radioButton_3.isChecked():
+                pref = '3'
+                print(3)
+            if self.radioButton_4.isChecked():
+                pref = '4'
+                print(4)
+            if (pref + ' : ' + str(self.spin_box.value())) in all_items:
+                QtWidgets.QMessageBox.warning(self, "Предупреждение", "Значение уже существует", defaultButton=QtWidgets.QMessageBox.Ok)
+                return
+            self.combo_box.addItem(pref + ' : ' + str(self.spin_box.value()))
+            self.combo_box.setCurrentText(pref + ' : ' + str(self.spin_box.value()))
+        else:
+            self.combo_box.addItem(str(self.spin_box.value()))
+            self.combo_box.setCurrentText(str(self.spin_box.value()))
         self.combo_box.repaint()
 
 
@@ -187,6 +253,24 @@ class DescriptionWidget(QtWidgets.QWidget):
         self.gridLayout.addWidget(self.label_2, 0, 3, 1, 1)
         self.combo_box = QtWidgets.QComboBox(self.group_box)
         self.gridLayout.addWidget(self.combo_box, 1, 3, 1, 1)
+        ''' '''
+        # Добавляем кнопки выбора типа значения для алгоритмов 23-25
+        self.radiobuttonVLayout = QtWidgets.QVBoxLayout()
+        self.radioButton_1 = QtWidgets.QRadioButton()
+        self.radiobuttonVLayout.addWidget(self.radioButton_1)
+        self.radioButton_2 = QtWidgets.QRadioButton()
+        self.radiobuttonVLayout.addWidget(self.radioButton_2)
+        self.radioButton_3 = QtWidgets.QRadioButton()
+        self.radiobuttonVLayout.addWidget(self.radioButton_3)
+        self.radioButton_4 = QtWidgets.QRadioButton()
+        self.radiobuttonVLayout.addWidget(self.radioButton_4)
+        self.gridLayout.addLayout(self.radiobuttonVLayout, 1, 0, 1, 1)
+        self.radioButton_1.setChecked(True)
+        self.radioButton_1.hide()
+        self.radioButton_2.hide()
+        self.radioButton_3.hide()
+        self.radioButton_4.hide()
+        ''' '''
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 0, 2, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout)
@@ -294,6 +378,18 @@ class DescriptionWidget(QtWidgets.QWidget):
 
         calc = QtWidgets.QListWidgetItem("22. Подсознательное «Я»")
         calc.setData(QtCore.Qt.UserRole, 21)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem('23. Проблемы, уроки, препятствия')
+        calc.setData(QtCore.Qt.UserRole, 22)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem('24. Пики, достижения, вершины')
+        calc.setData(QtCore.Qt.UserRole, 23)
+        self.list_widget.addItem(calc)
+
+        calc = QtWidgets.QListWidgetItem('25. Жизненные циклы')
+        calc.setData(QtCore.Qt.UserRole, 24)
         self.list_widget.addItem(calc)
 
         calc = QtWidgets.QListWidgetItem("26. Персональный год")

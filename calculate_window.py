@@ -34,6 +34,9 @@ class CalculateWidget(QtWidgets.QWidget):
             "Кармические уроки",
             "Скрытая страсть (Тайное желание)",
             "Подсознательное «Я»",
+            "Проблемы, уроки, препятствия",
+            "Пики, достижения, вершины",
+            "Жизненные циклы",
             "Персональный год",
             "Персональный месяц"
         ]
@@ -66,26 +69,6 @@ class CalculateWidget(QtWidgets.QWidget):
         self.selected_item = item
         self.btn_calculate.setEnabled(True)
 
-    def not_found_case(self):
-            self.cur.execute(
-                            """
-                            SELECT desc_list FROM descriptions WHERE id=?
-                            """, (self.row_id, )
-                        )
-            values = self.cur.fetchall()
-            # Если есть значения, заданные в базе
-            if values:
-                values = json.loads(values[0][0])
-                # Если в базе есть описание для данного значения
-                if str(self.value) in values:
-                    self.print_text = values[str(self.value)]
-                # Если в базе нет описания для полученного значения
-                else:
-                    self.print_text = "Значение по умолчанию не задано"
-            # Если в базе нет значений, т.е fetchall() вернул []
-            else:
-                self.print_text = "Значение по умолчанию не задано"
-
     def on_result_create(self):
         # algo_data[0] -> номер алгоритма
         # algo_data[1] -> порядковый номер [0...1]
@@ -100,7 +83,7 @@ class CalculateWidget(QtWidgets.QWidget):
                         установлены для данного алфавита.",
                         defaultButton=QtWidgets.QMessageBox.Ok
                         )
-                    return # Выходим из метода self.on_result_create
+                    return
         # Если все значения установлены
         value = self.calculate(algo_data[0])
 
@@ -116,7 +99,7 @@ class CalculateWidget(QtWidgets.QWidget):
         if algo in range(27):
             print('ALGO:', algo)
             return eval("self.algo_{}()".format(algo))
-        else: return -1
+        return -1
 
     def algo_0(self):
         return self.data["date_of_birth"][0]
@@ -134,7 +117,7 @@ class CalculateWidget(QtWidgets.QWidget):
                 total += value % 10
                 value //= 10
             print(total)
-            if total < 9 or total == 11 or total == 22 or \
+            if total <= 9 or total == 11 or total == 22 or \
                 total == 33 or total == 44:
                 break
             value = total
@@ -171,7 +154,7 @@ class CalculateWidget(QtWidgets.QWidget):
             while day:
                 total += day % 10
                 day //= 10
-            if total < 9: 
+            if total <= 9: 
                 break
             day = total
             total = 0
@@ -214,20 +197,24 @@ class CalculateWidget(QtWidgets.QWidget):
         surname = self.data['surname']
         name = self.data['name']
         middle_name = self.data['middle_name']
-
-        pers_data = [surname[0], name[0], middle_name[0]]
+        pers_data = [name[0]]
+        try:
+            pers_data.append(surname[0])
+        except IndexError:
+            pass
+        try:
+            pers_data.append(middle_name[0])
+        except IndexError:
+            pass
         value = 0
         for letter in pers_data:
-            if letter:
-                for ind, arr in enumerate(alphabet):
-                    val = ind + 1
-                    for alpha_letter in arr:
-                        if alpha_letter[0].lower() == letter.lower():
-                            value += val
-                            print(val)
-
+            for ind, arr in enumerate(alphabet):
+                val = ind + 1
+                for alpha_letter in arr:
+                    if alpha_letter[0].lower() == letter.lower():
+                        value += val
+                        print(val)
         total = 0
-
         if value > 9 and value != 11 and value != 22:
             total = 0
             while True:
@@ -315,6 +302,97 @@ class CalculateWidget(QtWidgets.QWidget):
     def algo_21(self):
         return (9 - self.algo_19())
 
+    def algo_22(self):
+        value = (
+'''
+1-я Проблема = {}
+2-я Проблема = {}
+3-я Проблема = {}
+4-я Проблема = {}
+''')
+        # Начальные значения из .json файла
+        day     = str(self.data['date_of_birth'][0])
+        month   = str(self.data['date_of_birth'][1])
+        year    = str(self.data['date_of_birth'][2])
+
+        # Суммируем цифры в каждом числе, пока в каждом не останется по одной
+        while len(day) + len(month) + len(year) > 3:
+            day     = str(sum([int(x) for x in day]))
+            month   = str(sum([int(x) for x in month]))
+            year    = str(sum([int(x) for x in year]))
+
+        day     = int(day)
+        month   = int(month)
+        year    = int(year)
+
+        val_1 = abs(month - day)
+        val_2 = abs(day - year)
+        val_3 = abs(val_1 - val_2)
+        val_4 = abs(month - year)
+        
+        
+        return value.format(val_1, val_2, val_3, val_4)
+
+
+    def algo_23(self):
+        value = (
+'''
+1-й Пик = {}
+2-й Пик = {}
+3-й Пик = {}
+4-й Пик = {}
+''')
+        # Начальные значения из .json файла
+        day     = str(self.data['date_of_birth'][0])
+        month   = str(self.data['date_of_birth'][1])
+        year    = str(self.data['date_of_birth'][2])
+
+        # Суммируем цифры в каждом числе, пока в каждом не останется по одной
+        while len(day) + len(month) + len(year) > 3:
+            day     = str(sum([int(x) for x in day]))
+            month   = str(sum([int(x) for x in month]))
+            year    = str(sum([int(x) for x in year]))
+
+        day     = int(day)
+        month   = int(month)
+        year    = int(year)
+
+
+        val_1 = str(month + day)
+        val_2 = str(day + year)
+        val_3 = str(abs(month - year))
+        val_4 = str(month + year)
+
+        while len(val_1) + len(val_2) + len(val_3) + len(val_4) > 4:
+            val_1    = str(sum([int(x) for x in val_1]))
+            val_2    = str(sum([int(x) for x in val_2]))
+            val_3    = str(sum([int(x) for x in val_3]))
+            val_4    = str(sum([int(x) for x in val_4]))
+
+        return value.format(val_1, val_2, val_3, val_4)
+
+    def algo_24(self):
+        value = (
+'''
+Формирующий цикл    = {}
+Продуктивный цикл   = {}
+Результативный цикл = {}
+''')
+        # Начальные значения из .json файла
+        day     = str(self.data['date_of_birth'][0])
+        month   = str(self.data['date_of_birth'][1])
+        year    = str(self.data['date_of_birth'][2])
+
+        while len(day) + len(month) + len(year) > 3:
+            day     = str(sum([int(x) for x in day]))
+            month   = str(sum([int(x) for x in month]))
+            year    = str(sum([int(x) for x in year]))
+        
+        return value.format(month, day, year)
+
+
+
+
     def algo_25(self):
         import datetime
 
@@ -352,8 +430,6 @@ class CalculateWidget(QtWidgets.QWidget):
                     summary = 0
 
         return summary
-
-
 
     def algo_26(self):
         import datetime
@@ -471,8 +547,8 @@ class CalculateWidget(QtWidgets.QWidget):
         self.list_calculate.setProperty("isWrapping", False)
         self.list_calculate.setResizeMode(QtWidgets.QListView.Fixed)
 
-        # Создаем 22 ячеек в таблице
-        for _ in range(22):
+        # Создаем 24 ячейки в таблице
+        for _ in range(25):
             item = QtWidgets.QListWidgetItem()
             self.list_calculate.addItem(item)
 
@@ -514,10 +590,11 @@ class CalculateWidget(QtWidgets.QWidget):
         __sortingEnabled = self.list_calculate.isSortingEnabled()
         self.list_calculate.setSortingEnabled(False)
         # Редактируем ячейки списка
-        values = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 25, 26]
-        for num in zip(values, range(22)):
+        values = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
+        for num in zip(values, range(25)):
             item = self.list_calculate.item(num[1])
             # item.data == (Номер алгоритма, порядковый номер в self.headers)
+            print(num)
             item.setData(QtCore.Qt.UserRole, (num[0], num[1]))
             item.setText("{id}. {name}".format(
                 id=num[0] + 1,
@@ -540,6 +617,6 @@ class CalculateWidget(QtWidgets.QWidget):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    widget = CalculateWidget(None, r"/Users/fidler/Desktop/Контрагенты/АЛекс.json")
+    widget = CalculateWidget(None, r"/Users/fidler/Desktop/КОНТРАГЕНТЫ/Benjamin.json")
     widget.show()
     sys.exit(app.exec())
