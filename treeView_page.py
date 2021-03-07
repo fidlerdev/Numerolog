@@ -20,10 +20,6 @@ class TreeViewWindow(QtWidgets.QTreeView):
         self.setAnimated(True)
         self.setIndentation(35)
 
-        # itemDelegate = MyItemDelegate(self)
-        # self.setItemDelegate(itemDelegate)
-
-
         self.tool_bar = tool_bar
         self.edit_user_action = self.tool_bar.actions()[2]
         self.sort_alpha_action = self.tool_bar.actions()[3]
@@ -284,6 +280,7 @@ class TreeViewWindow(QtWidgets.QTreeView):
         result = dialog.exec()
         if result == QtWidgets.QMessageBox.Accepted:
             self.model.setData(index, dialog.getName() + type[1])
+        self.model.resetInternalData()
 
 
 

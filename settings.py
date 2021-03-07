@@ -7,7 +7,7 @@ from save_data import save_settings
 from dialog_windows import CloseDialog
 from desc_window import DescriptionWidget
 from alpha_window import AlphaWindow
-import sqlite3
+import sqlite3, io, os, shutil
 
 class SettingsWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
@@ -31,6 +31,43 @@ class SettingsWidget(QtWidgets.QWidget):
         self.listWidget_dicts.itemDoubleClicked.connect(self.open_alpha_window)
         self.btn_new_dict.clicked.connect(self.new_dict_clicked)
         self.btn_descriptions.clicked.connect(self.open_descriptions)
+        self.btn_import_desc.clicked.connect(self.import_desc)
+        self.btn_export_desc.clicked.connect(self.export_desc)
+
+    def import_desc(self):
+        '''
+        Импорт базы данных с описаниями в корневую директорию проекта
+        desc.db – обязательное имя файла с базой данных
+        '''
+        db_file = QtWidgets.QFileDialog.getOpenFileName(self, 'Импортировать базу с описаниями')[0]
+        # Если отменили выбор
+        if not db_file:
+            return
+        os.remove('desc.db')
+        conn = sqlite3.connect(db_file)
+        cur = conn.cursor()
+        cur.execute('begin immediate')
+        shutil.copyfile(db_file, '.' + os.sep + 'desc.db')
+        print('Импорт осуществлен успешно')
+        conn.rollback()
+
+    def export_desc(self):
+        '''
+        desc.db – обязательное имя базы данных
+        '''
+        backup_db = QtWidgets.QFileDialog.getSaveFileName(self, 'Экспортировать базу с описаниями')[0]
+        # Если отменили выбор
+        if not backup_db:
+            return
+        backup_db += '.db'
+        conn = sqlite3.connect('desc.db')
+        cur = conn.cursor()
+        # Lock database before making a backup
+        cur.execute('begin immediate')
+        shutil.copyfile('desc.db', backup_db)
+        print('Экспорт осуществлен успешно')
+        print('Сохранено как', backup_db)
+        conn.rollback()
 
     def open_alpha_window(self, item):
         self.alpha_name = item.data(QtCore.Qt.UserRole)
@@ -233,7 +270,11 @@ class SettingsWidget(QtWidgets.QWidget):
         self.groupBox = QtWidgets.QGroupBox(Form)
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.groupBox)
         self.btn_descriptions = QtWidgets.QPushButton(self.groupBox)
+        self.btn_import_desc = QtWidgets.QPushButton(self.groupBox)
+        self.btn_export_desc = QtWidgets.QPushButton(self.groupBox)
         self.verticalLayout_4.addWidget(self.btn_descriptions)
+        self.verticalLayout_4.addWidget(self.btn_import_desc)
+        self.verticalLayout_4.addWidget(self.btn_export_desc)
         self.label = QtWidgets.QLabel(self.groupBox)
         self.verticalLayout_4.addWidget(self.label)
         self.listWidget_dicts = QtWidgets.QListWidget(self.groupBox)
@@ -380,6 +421,8 @@ class SettingsWidget(QtWidgets.QWidget):
         self.groupBox.setTitle(_translate("Form", "Расчёты"))
         self.label.setText(_translate("Form", "Список алфавитов:"))
         self.btn_descriptions.setText("База с описаниями")
+        self.btn_import_desc.setText("Импорт базы")
+        self.btn_export_desc.setText("Экспорт базы")
         self.btn_delete.setText(_translate("Form", "Удалить"))
         self.groupBox_3.setTitle(_translate("Form", "Основные"))
         self.check_save_wd.setText(_translate("Form", "Запоминать выбранную рабочую область"))
