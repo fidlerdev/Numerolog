@@ -357,18 +357,52 @@ class CalculateWidget(QtWidgets.QWidget):
         month   = int(month)
         year    = int(year)
 
+        print('''
+        day:    {}
+        month:  {}
+        year:   {}
+        '''.format(day, month, year))
+
 
         val_1 = str(month + day)
         val_2 = str(day + year)
         val_3 = str(abs(month - year))
         val_4 = str(month + year)
 
-        while len(val_1) + len(val_2) + len(val_3) + len(val_4) > 4:
-            val_1    = str(sum([int(x) for x in val_1]))
-            val_2    = str(sum([int(x) for x in val_2]))
-            val_3    = str(sum([int(x) for x in val_3]))
-            val_4    = str(sum([int(x) for x in val_4]))
+        v_1 = False
+        v_2 = False
+        v_3 = False
+        v_4 = False
 
+        while True:
+
+            if val_1 != '11' and val_1 != '22':
+                val_1    = str(sum([int(x) for x in val_1]))
+            else:
+                v_1 = True
+
+            print('pre_val_12:', val_2)
+            if val_2 != '11' and val_2 != '22':
+                print(val_2 != 11, val_2 != 22)
+                val_2    = str(sum([int(x) for x in val_2]))
+            else:
+                v_2 = True
+
+            if val_3 != '11' and val_3 != '22':
+                val_3    = str(sum([int(x) for x in val_3]))
+            else:
+                v_3 = True
+
+            if val_4 != '11' and val_4 != '22':
+                val_4    = str(sum([int(x) for x in val_4]))
+            else:
+                v_4 = True
+            
+            if (v_1 or len(val_1) == 1) and (v_2 or len(val_2) == 1) and \
+                (v_3 or len(val_3) == 1) and (v_4 or len(val_4) == 1):
+                break
+
+        print('val_2:', val_2)
         return value.format(val_1, val_2, val_3, val_4)
 
     def algo_24(self):

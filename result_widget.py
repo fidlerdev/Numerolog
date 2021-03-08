@@ -25,20 +25,26 @@ class ResultWidget(QtWidgets.QWidget):
         self.lbl_header.setText(self.header_text)
 
         try:
-            self.load_desc()
-            self.input_value.setText(str(self.value))
+            if self.row_id == 18:
+                self.text_18 = ''
+                for i, x in enumerate(self.value, start=1):
+                    self.text_18 += 'Букв, имеющих числовое значение {} = {}\n'.format(i, x)
+                self.input_value.setText(self.text_18)
+            else:
+                self.load_desc()
+                self.input_value.setText(str(self.value))
+            self.input_value.setReadOnly(True)                       # этих двух строчек
             if self.row_id not in range(22, 24 + 1):
                 self.txt_description.textChanged.connect(self.desc_changed)
-            self.input_value.textChanged.connect(self.value_changed)
-            self.input_value.setReadOnly(True)
+            self.input_value.textChanged.connect(self.value_changed) # Смысл ???
         except AttributeError as err:
-            pass
+            print(err)
 
         self.btn_close.clicked.connect(self.on_close)
-        if self.row_id != 18:
-            self.btn_print.clicked.connect(self.print_out)
-            if self.row_id not in range(22, 24 + 1):
-                self.btn_save.clicked.connect(self.on_save)
+        # if self.row_id != 18:
+        self.btn_print.clicked.connect(self.print_out)
+        if self.row_id not in ((18, ) + tuple(range(22, 24 + 1))):
+            self.btn_save.clicked.connect(self.on_save)
 
     def print_out(self):
         self.txt_print_out = QtWidgets.QTextEdit()
@@ -56,14 +62,7 @@ class ResultWidget(QtWidgets.QWidget):
         self.txt_print_out.setText(print_out_text)
         # printer = QtPrintSupport.QPrinter(QtPrintSupport.QPrinter.HighResolution)
         printer = QtPrintSupport.QPrinter()
-        '''
-        if self.row_id == 18:
-            painter = QtGui.QPainter()
-            painter.begin(printer)
-            print(printer.width(), printer.height())
-            image = self.table_img.return_image()
-            painter.drawPixmap(printer.width() / 2, printer.height() / 2, QtGui.QPixmap.fromImage(image))
-        '''
+
         previewDialog = QtPrintSupport.QPrintPreviewDialog(printer, self)
         previewDialog.setWindowTitle("Предпросмотр")
         previewDialog.paintRequested.connect(self.printPreview)
@@ -71,7 +70,19 @@ class ResultWidget(QtWidgets.QWidget):
 
 
     def printPreview(self, printer):
-        self.txt_print_out.print(printer)
+        if self.row_id == 18:
+            painter = QtGui.QPainter()
+            painter.begin(printer)
+            # print(printer.width(), printer.height())
+            image = self.table_img.return_image()
+            # painter.drawImage(printer.width() // 2, printer.height() // 2, QtGui.QPixmap.fromImage(image))
+            painter.drawImage(QtCore.QRectF(20, 50, 270, 270), image)
+            print(self.value)
+            assert self.value is not str
+            for shift in range(9):
+                painter.drawText(320, 50 + 12*shift, self.text_18.split('\n')[shift])
+        else:
+            self.txt_print_out.print(printer)
 
 
 
@@ -125,20 +136,20 @@ class ResultWidget(QtWidgets.QWidget):
                 '1-я Проблема = {}',
                 '2-я Проблема = {}',
                 '3-я Проблема = {}',
-                '4-я Проблема = {}'
+                '4-я Проблема = {}',
                 ]
             if self.row_id == 23:
                 texts = [
                     '1-й Пик = {}',
                     '2-й Пик = {}',
                     '3-й Пик = {}',
-                    '4-й Пик = {}'
+                    '4-й Пик = {}',
                 ]
             if self.row_id == 24:
                 texts = [
                     'Формирующий цикл = {}',
                     'Продуктивный цикл = {}',
-                    'Результативный цикл = {}'
+                    'Результативный цикл = {}',
                 ]
 
             str_vals = self.value.split('\n')[1:-1]
@@ -172,6 +183,7 @@ class ResultWidget(QtWidgets.QWidget):
             txt += '\n'
 
             self.txt_description.setText(txt)
+        
 
 
     def not_found_case(self):
@@ -194,8 +206,6 @@ class ResultWidget(QtWidgets.QWidget):
         # Если в базе нет значений, т.е fetchall() вернул []
         else:
             self.txt_description.setText("Значение по умолчанию не задано")
-
-
 
 
     def on_close(self):
@@ -277,6 +287,9 @@ class ResultWidget(QtWidgets.QWidget):
                 self.input_value = QtWidgets.QLineEdit(self.group_box_2)
             self.v_layout.addWidget(self.input_value)
         else:
+            hor_layout = QtWidgets.QHBoxLayout()
+            self.v_layout.addLayout(hor_layout)
+
             self.table_img = TableImage(
                 values=self.value,
                 size=(270, 270),
@@ -286,10 +299,17 @@ class ResultWidget(QtWidgets.QWidget):
                 fill='#000000',
                 alert_fill='#ff4d00'
             )
+            # Значения в виде текста
+            self.input_value = QtWidgets.QTextEdit(self.group_box_2)
+
+            # self.v_layout.addWidget(self.input_value)
+
             self.table_img.prepare_image(line_w=2)
             self.lbl_image = QtWidgets.QLabel()
             image = self.table_img.return_image()
             self.lbl_image.setPixmap(QtGui.QPixmap.fromImage(image))
+            hor_layout.addWidget(self.lbl_image)
+            hor_layout.addWidget(self.input_value)
 
             self.v_layout.addWidget(self.lbl_image)
 
@@ -297,6 +317,9 @@ class ResultWidget(QtWidgets.QWidget):
         self.verticalLayout.addWidget(self.group_box_2)
 
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.btn_print = QtWidgets.QPushButton(self)
+        self.btn_print.setIcon(self.icons['print'])
+        self.horizontalLayout.addWidget(self.btn_print)
 
         if self.row_id != 18:
             self.group_box_3 = QtWidgets.QGroupBox()
@@ -310,8 +333,6 @@ class ResultWidget(QtWidgets.QWidget):
 
             self.group_box_3.setLayout(self.v_layout)
             self.verticalLayout.addWidget(self.group_box_3)
-            self.btn_print = QtWidgets.QPushButton(self)
-            self.btn_print.setIcon(self.icons['print'])
             # Нельзя сохранять/изменять значение, если выбран алгоритм 23-25
             self.txt_description.setReadOnly(True)
 
@@ -320,7 +341,6 @@ class ResultWidget(QtWidgets.QWidget):
                 self.horizontalLayout.addWidget(self.btn_save)
                 self.txt_description.setReadOnly(True)
 
-            self.horizontalLayout.addWidget(self.btn_print)
             self.horizontalLayout.addSpacerItem(QtWidgets.QSpacerItem(200, 0))
 
         self.btn_close = QtWidgets.QPushButton(self)
